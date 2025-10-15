@@ -2,7 +2,17 @@ import OpenAI from "openai";
 import { UserType, ClassLevel, Subject, Chapter, SessionPlan } from "../types";
 
 // Check if API key is configured
-const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
+const apiKey =
+  process.env.OPENAI_API_KEY || process.env.REACT_APP_OPENAI_API_KEY;
+
+// Configuration from environment variables
+const OPENAI_MODEL = process.env.REACT_APP_OPENAI_MODEL || "gpt-3.5-turbo";
+const MAX_TOKENS = parseInt(process.env.REACT_APP_OPENAI_MAX_TOKENS || "2000");
+const TEMPERATURE = parseFloat(
+  process.env.REACT_APP_OPENAI_TEMPERATURE || "0.7"
+);
+const DEFAULT_SESSION_DURATION =
+  process.env.REACT_APP_DEFAULT_SESSION_DURATION || "45-60 minutes";
 
 if (!apiKey || apiKey === "your_openai_api_key_here") {
   console.warn(
@@ -10,12 +20,52 @@ if (!apiKey || apiKey === "your_openai_api_key_here") {
   );
 }
 
-// Initialize OpenAI client
+// Custom OpenAI API call function to handle CORS using local proxy
+const callOpenAI = async (messages: any[], model = OPENAI_MODEL) => {
+  if (!apiKey || apiKey === "your_openai_api_key_here") {
+    throw new Error("OpenAI API key not configured");
+  }
+
+  try {
+    // Use local proxy to avoid CORS issues in development
+    const response = await fetch("/api/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        max_tokens: MAX_TOKENS,
+        temperature: TEMPERATURE,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `OpenAI API error: ${response.status} ${response.statusText} - ${errorText}`
+      );
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error("OpenAI API call failed:", error);
+    throw error;
+  }
+};
+
+// Initialize OpenAI client with custom fetch
 const openai =
   apiKey && apiKey !== "your_openai_api_key_here"
     ? new OpenAI({
         apiKey: apiKey,
-        dangerouslyAllowBrowser: true, // Note: In production, use a backend API to avoid exposing the API key
+        dangerouslyAllowBrowser: true,
+        baseURL: "https://api.openai.com/v1",
+        defaultHeaders: {
+          "User-Agent": "OpenAI/JS 4.20.1",
+        },
       })
     : null;
 
@@ -45,7 +95,7 @@ Number of Sessions: ${numberOfSessions}
 For each session, provide:
 1. A clear, engaging session title
 2. A comprehensive summary (2-3 sentences) of what will be covered
-3. Estimated duration (typically 45-60 minutes per session)
+3. Estimated duration (typically ${DEFAULT_SESSION_DURATION} per session)
 4. 3-4 specific learning objectives
 
 The sessions should:
@@ -66,28 +116,24 @@ Please respond with a JSON array containing exactly ${numberOfSessions} session 
 Ensure the JSON is valid and properly formatted.`;
 
   try {
-    // Check if OpenAI is configured
-    if (!openai) {
+    // Check if API key is configured
+    if (!apiKey || apiKey === "your_openai_api_key_here") {
       console.log("OpenAI not configured, using fallback session plans");
       return generateFallbackSessionPlan(request);
     }
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are an expert educational content creator specializing in curriculum design for Indian school standards. Always respond with valid JSON only.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      max_tokens: 2000,
-      temperature: 0.7,
-    });
+    // Use custom fetch to avoid CORS issues
+    const completion = await callOpenAI([
+      {
+        role: "system",
+        content:
+          "You are an expert educational content creator specializing in curriculum design for Indian school standards. Always respond with valid JSON only.",
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ]);
 
     const content = completion.choices[0]?.message?.content;
     if (!content) {
@@ -128,7 +174,7 @@ const generateFallbackSessionPlan = (
       sessionNumber: i,
       title: `${chapter.title} - Session ${i}`,
       summary: `This session covers fundamental concepts and practical applications related to ${chapter.title}. Students will explore key topics through interactive learning and hands-on activities.`,
-      duration: "45-60 minutes",
+      duration: DEFAULT_SESSION_DURATION,
       objectives: [
         `Understand the basic concepts of ${chapter.title}`,
         "Apply theoretical knowledge to practical scenarios",
