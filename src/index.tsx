@@ -2,14 +2,22 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
+import { BrowserRouter } from 'react-router-dom';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
+const getBasename = () => {
+  // Use basename only in production (GitHub Pages)
+  return process.env.NODE_ENV === 'production' ? '/school-ai.ui' : undefined;
+};
+
 root.render(
   <React.StrictMode>
-    <App />
+    <BrowserRouter basename={getBasename()}>
+      <App />
+    </BrowserRouter>
   </React.StrictMode>
 );
 
