@@ -357,9 +357,12 @@ export const generateQuestions = async (
       },
     ]);
 
-    const content = completion.choices[0]?.message?.content;
+    let content = completion.choices[0]?.message?.content;
     if (!content) {
       throw new Error("No content received from OpenAI");
+    }
+    if (content.startsWith("```")) {
+      content = content.replace(/```json|```/g, "").trim();
     }
 
     // Parse the JSON response
