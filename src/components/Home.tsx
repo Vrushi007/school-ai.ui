@@ -2,16 +2,17 @@ import React from "react";
 import { Paper, Typography, Box, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { School, Person, Groups } from "@mui/icons-material";
+import { ROUTES } from "../constants/common";
 
 function Home() {
   const navigate = useNavigate();
 
   const handleTeacherClick = () => {
-    navigate("/school-ai.ui/teacher");
+    navigate(ROUTES.TEACHER_DASHBOARD);
   };
 
   const handleStudentClick = () => {
-    navigate("/school-ai.ui/student");
+    navigate(ROUTES.STUDENT_DASHBOARD);
   };
 
   return (

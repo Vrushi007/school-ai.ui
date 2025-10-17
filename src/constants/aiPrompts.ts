@@ -9,6 +9,9 @@ export const AI_PROMPTS = {
   SESSION_DETAIL_SYSTEM:
     "You are an expert educational content creator specializing in detailed lesson planning for Indian school standards. Always respond with clean, well-structured HTML.",
 
+  QUESTION_GENERATION_SYSTEM:
+    "You are an expert educational assessment creator specializing in question paper generation for Indian school standards. Always respond with valid JSON only.",
+
   // Session Plan Generation Prompt
   SESSION_PLAN_USER: `
 You are an expert educational content creator. Create a detailed session plan for a {userType} teaching {subjectName} to {className} standard students.
@@ -69,6 +72,42 @@ Requirements:
 - Format as clean HTML with proper headings and structure
 
 Respond with well-structured HTML content only.`,
+
+  // Question Paper Generation Prompt
+  QUESTION_GENERATION_USER: `
+You are an expert educational assessment creator. Generate questions for a question paper based on the following requirements:
+
+Subject: {subjectName}
+Class: {className} Standard  
+Chapter: {chapterTitle}
+
+Question Requirements:
+{questionRequirements}
+
+Create questions that are:
+- Age-appropriate for {className} standard students
+- Aligned with the chapter content and learning objectives
+- Varied in difficulty (easy, medium, hard)
+- Clear and unambiguous
+- Include proper marking scheme
+
+For multiple choice questions, provide:
+- 4 options (A, B, C, D)
+- One correct answer
+- Plausible distractors
+
+Please respond with a JSON array containing question objects with the following structure:
+{
+  "id": "unique_question_id",
+  "type": "multiple-choice" | "short-answer" | "long-answer" | "true-false",
+  "question": "The question text",
+  "options": ["Option A", "Option B", "Option C", "Option D"], // Only for multiple choice
+  "correctAnswer": "Correct option text", // Only for multiple choice and true-false
+  "marks": number,
+  "difficulty": "easy" | "medium" | "hard"
+}
+
+Ensure the JSON is valid and properly formatted.`,
 };
 
 // Helper function to replace placeholders in prompts
@@ -96,4 +135,6 @@ export const AI_CONFIG = {
   TEMPERATURE: 0.7,
   SESSION_DETAIL_MAX_TOKENS: 2500,
   SESSION_DETAIL_TEMPERATURE: 0.7,
+  QUESTION_GENERATION_MAX_TOKENS: 3000,
+  QUESTION_GENERATION_TEMPERATURE: 0.8,
 };

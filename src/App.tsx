@@ -2,11 +2,13 @@ import React from "react";
 import "./App.css";
 import { Container, Paper, Typography } from "@mui/material";
 import { School } from "@mui/icons-material";
-import { Routes, Route, Link } from "react-router-dom";
+import { Routes, Route, Link, Navigate } from "react-router-dom";
 import LessonPlanner from "./components/LessonPlanner";
 import Home from "./components/Home";
 import Teacher from "./components/Teacher";
 import Student from "./components/Student";
+import QuestionPaperGenerator from "./components/QuestionPaperGenerator";
+import { ROUTES } from "./constants/common";
 
 function App() {
   return (
@@ -20,7 +22,7 @@ function App() {
           background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         }}
       >
-        <Link to="/" style={{ textDecoration: "none" }}>
+        <Link to="/school-ai.ui" style={{ textDecoration: "none" }}>
           <Typography
             variant="h4"
             component="h1"
@@ -34,11 +36,16 @@ function App() {
 
       {/* Routes */}
       <Routes>
+        <Route path="/" element={<Navigate to="/school-ai.ui" replace />} />
         <Route path="/school-ai.ui" element={<Home />} />
-        <Route path="/school-ai.ui/home" element={<Home />} />
-        <Route path="/school-ai.ui/teacher" element={<Teacher />} />
-        <Route path="/school-ai.ui/student" element={<Student />} />
-        <Route path="/school-ai.ui/lesson-plan" element={<LessonPlanner />} />
+        <Route path={ROUTES.HOME} element={<Home />} />
+        <Route path={ROUTES.TEACHER_DASHBOARD} element={<Teacher />} />
+        <Route path={ROUTES.STUDENT_DASHBOARD} element={<Student />} />
+        <Route path={ROUTES.LESSON_PLANNER} element={<LessonPlanner />} />
+        <Route
+          path={ROUTES.QUESTION_PAPER_GENERATOR}
+          element={<QuestionPaperGenerator />}
+        />
       </Routes>
     </Container>
   );

@@ -2,17 +2,17 @@ import React from "react";
 import { Paper, Typography, Box, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { MenuBook, Quiz } from "@mui/icons-material";
+import { ROUTES } from "../constants/common";
 
 function Teacher() {
   const navigate = useNavigate();
 
   const handleLessonPlanningClick = () => {
-    navigate("/school-ai.ui/lesson-plan");
+    navigate(ROUTES.LESSON_PLANNER);
   };
 
   const handleQuestionPaperClick = () => {
-    // Will implement later
-    console.log("Question paper generation clicked");
+    navigate(ROUTES.QUESTION_PAPER_GENERATOR);
   };
 
   return (
@@ -77,7 +77,7 @@ function Teacher() {
             variant="contained"
             size="large"
             sx={{
-              mt: 2,
+              mt: 8,
               px: 4,
               py: 2,
               background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",

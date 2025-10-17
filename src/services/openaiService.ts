@@ -303,3 +303,117 @@ const generateFallbackSessionDetail = (
     </div>
   `;
 };
+
+// Question Generation Interface
+export interface Question {
+  id: string;
+  type: "multiple-choice" | "short-answer" | "long-answer" | "true-false";
+  question: string;
+  options?: string[]; // For multiple choice
+  correctAnswer?: string;
+  marks: number;
+  difficulty?: "easy" | "medium" | "hard";
+}
+
+export interface QuestionGenerationRequest {
+  classLevel: ClassLevel;
+  subject: Subject;
+  chapter: Chapter;
+  questionRequirements: string;
+}
+
+// Generate questions for a question paper
+export const generateQuestions = async (
+  request: QuestionGenerationRequest
+): Promise<Question[]> => {
+  const { classLevel, subject, chapter, questionRequirements } = request;
+
+  const subjectName = subject.charAt(0).toUpperCase() + subject.slice(1);
+  const className = classLevel === "8th" ? "8th" : classLevel === "9th" ? "9th" : "10th";
+
+  const prompt = formatPrompt(AI_PROMPTS.QUESTION_GENERATION_USER, {
+    subjectName,
+    className,
+    chapterTitle: chapter.title,
+    questionRequirements,
+  });
+
+  try {
+    // Check if API key is configured
+    if (!apiKey || apiKey === "your_openai_api_key_here") {
+      console.log("OpenAI not configured, using fallback questions");
+      return generateFallbackQuestions(request);
+    }
+
+    // Use custom fetch to avoid CORS issues
+    const completion = await callOpenAI([
+      {
+        role: "system",
+        content: AI_PROMPTS.QUESTION_GENERATION_SYSTEM,
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ]);
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error("No content received from OpenAI");
+    }
+
+    // Parse the JSON response
+    const questions: Question[] = JSON.parse(content);
+
+    // Validate the response
+    if (!Array.isArray(questions)) {
+      throw new Error("Invalid response format from OpenAI");
+    }
+
+    return questions;
+  } catch (error) {
+    console.error("Error generating questions:", error);
+    // Fallback: Generate mock questions if API fails
+    return generateFallbackQuestions(request);
+  }
+};
+
+// Fallback function to generate mock questions if OpenAI API fails
+const generateFallbackQuestions = (
+  request: QuestionGenerationRequest
+): Question[] => {
+  const { chapter } = request;
+  
+  const fallbackQuestions: Question[] = [
+    {
+      id: "fallback_mcq_1",
+      type: "multiple-choice",
+      question: `What is the main concept covered in ${chapter.title}?`,
+      options: [
+        "Basic understanding of the topic",
+        "Advanced applications only",
+        "Historical context only",
+        "None of the above"
+      ],
+      correctAnswer: "Basic understanding of the topic",
+      marks: 2,
+      difficulty: "easy"
+    },
+    {
+      id: "fallback_short_1", 
+      type: "short-answer",
+      question: `Briefly explain the key points of ${chapter.title}.`,
+      marks: 5,
+      difficulty: "medium"
+    },
+    {
+      id: "fallback_long_1",
+      type: "long-answer", 
+      question: `Discuss the practical applications and importance of ${chapter.title} in real-world scenarios.`,
+      marks: 10,
+      difficulty: "hard"
+    }
+  ];
+
+  return fallbackQuestions;
+};
