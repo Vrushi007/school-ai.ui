@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/static/css/main.78fc4af2.css",
-    "main.js": "/static/js/main.b9c49580.js",
-    "static/js/453.14333e3a.chunk.js": "/static/js/453.14333e3a.chunk.js",
-    "index.html": "/index.html",
-    "main.78fc4af2.css.map": "/static/css/main.78fc4af2.css.map",
-    "main.b9c49580.js.map": "/static/js/main.b9c49580.js.map",
-    "453.14333e3a.chunk.js.map": "/static/js/453.14333e3a.chunk.js.map"
+    "main.css": "/school-ai.ui/static/css/main.78fc4af2.css",
+    "main.js": "/school-ai.ui/static/js/main.68ad031e.js",
+    "static/js/453.14333e3a.chunk.js": "/school-ai.ui/static/js/453.14333e3a.chunk.js",
+    "index.html": "/school-ai.ui/index.html",
+    "main.78fc4af2.css.map": "/school-ai.ui/static/css/main.78fc4af2.css.map",
+    "main.68ad031e.js.map": "/school-ai.ui/static/js/main.68ad031e.js.map",
+    "453.14333e3a.chunk.js.map": "/school-ai.ui/static/js/453.14333e3a.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.78fc4af2.css",
-    "static/js/main.b9c49580.js"
+    "static/js/main.68ad031e.js"
   ]
 }
