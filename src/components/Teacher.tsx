@@ -7,7 +7,7 @@ function Teacher() {
   const navigate = useNavigate();
 
   const handleLessonPlanningClick = () => {
-    navigate("/lesson-plan");
+    navigate("/school-ai.ui/lesson-plan");
   };
 
   const handleQuestionPaperClick = () => {
