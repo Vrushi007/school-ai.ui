@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { UserType, ClassLevel, Subject, Chapter, SessionPlan } from "../types";
+import { AI_PROMPTS, formatPrompt, AI_CONFIG } from "../constants/aiPrompts";
 
 // Check if API key is configured
 const apiKey =
@@ -7,12 +8,15 @@ const apiKey =
 
 // Configuration from environment variables
 const OPENAI_MODEL = process.env.REACT_APP_OPENAI_MODEL || "gpt-3.5-turbo";
-const MAX_TOKENS = parseInt(process.env.REACT_APP_OPENAI_MAX_TOKENS || "2000");
+const MAX_TOKENS = parseInt(
+  process.env.REACT_APP_OPENAI_MAX_TOKENS || AI_CONFIG.MAX_TOKENS.toString()
+);
 const TEMPERATURE = parseFloat(
-  process.env.REACT_APP_OPENAI_TEMPERATURE || "0.7"
+  process.env.REACT_APP_OPENAI_TEMPERATURE || AI_CONFIG.TEMPERATURE.toString()
 );
 const DEFAULT_SESSION_DURATION =
-  process.env.REACT_APP_DEFAULT_SESSION_DURATION || "45-60 minutes";
+  process.env.REACT_APP_DEFAULT_SESSION_DURATION ||
+  AI_CONFIG.DEFAULT_SESSION_DURATION;
 
 if (!apiKey || apiKey === "your_openai_api_key_here") {
   console.warn(
@@ -86,34 +90,14 @@ export const generateSessionPlan = async (
   const className =
     classLevel === "8th" ? "8th" : classLevel === "9th" ? "9th" : "10th";
 
-  const prompt = `
-You are an expert educational content creator. Create a detailed session plan for a ${userType} teaching ${subjectName} to ${className} standard students.
-
-Chapter: ${chapter.title}
-Number of Sessions: ${numberOfSessions}
-
-For each session, provide:
-1. A clear, engaging session title
-2. A comprehensive summary (2-3 sentences) of what will be covered
-3. Estimated duration (typically ${DEFAULT_SESSION_DURATION} per session)
-4. 3-4 specific learning objectives
-
-The sessions should:
-- Build progressively from basic to advanced concepts
-- Be age-appropriate for ${className} standard students
-- Include practical examples and applications
-- Cover the complete chapter content across all ${numberOfSessions} sessions
-
-Please respond with a JSON array containing exactly ${numberOfSessions} session objects, each with the following structure:
-{
-  "sessionNumber": number,
-  "title": "string",
-  "summary": "string", 
-  "duration": "string",
-  "objectives": ["objective1", "objective2", "objective3", "objective4"]
-}
-
-Ensure the JSON is valid and properly formatted.`;
+  const prompt = formatPrompt(AI_PROMPTS.SESSION_PLAN_USER, {
+    userType,
+    subjectName,
+    className,
+    chapterTitle: chapter.title,
+    numberOfSessions,
+    defaultSessionDuration: DEFAULT_SESSION_DURATION,
+  });
 
   try {
     // Check if API key is configured
@@ -126,8 +110,7 @@ Ensure the JSON is valid and properly formatted.`;
     const completion = await callOpenAI([
       {
         role: "system",
-        content:
-          "You are an expert educational content creator specializing in curriculum design for Indian school standards. Always respond with valid JSON only.",
+        content: AI_PROMPTS.SESSION_PLAN_SYSTEM,
       },
       {
         role: "user",
@@ -135,9 +118,12 @@ Ensure the JSON is valid and properly formatted.`;
       },
     ]);
 
-    const content = completion.choices[0]?.message?.content;
+    let content = completion.choices[0]?.message?.content;
     if (!content) {
       throw new Error("No content received from OpenAI");
+    }
+    if (content.startsWith("```")) {
+      content = content.replace(/```json|```/g, "").trim();
     }
 
     // Parse the JSON response
@@ -212,35 +198,20 @@ export const generateSessionDetail = async (
   const className =
     classLevel === "8th" ? "8th" : classLevel === "9th" ? "9th" : "10th";
 
-  const prompt = `
-You are an expert educational content creator. Create detailed lesson content for a specific session.
+  const sessionObjectives = sessionPlan.objectives
+    .map((obj) => `- ${obj}`)
+    .join("\n");
 
-Context:
-- User Type: ${userType}
-- Class: ${className} Standard
-- Subject: ${subjectName}
-- Chapter: ${chapter.title}
-- Session: ${sessionPlan.sessionNumber} - ${sessionPlan.title}
-- Duration: ${sessionPlan.duration}
-
-Session Objectives:
-${sessionPlan.objectives.map((obj) => `- ${obj}`).join("\n")}
-
-Create comprehensive lesson content that includes:
-1. **Introduction** (5-10 minutes): Hook and context setting
-2. **Core Content** (20-30 minutes): Main concepts with examples
-3. **Activities** (10-15 minutes): Hands-on learning exercises
-4. **Assessment** (5-10 minutes): Quick check for understanding
-5. **Homework/Extension** (if applicable): Additional practice
-
-Requirements:
-- Age-appropriate for ${className} standard students
-- Include practical examples and real-world applications
-- Provide step-by-step explanations
-- Include interactive elements and questions for student engagement
-- Format as clean HTML with proper headings and structure
-
-Respond with well-structured HTML content only.`;
+  const prompt = formatPrompt(AI_PROMPTS.SESSION_DETAIL_USER, {
+    userType,
+    className,
+    subjectName,
+    chapterTitle: chapter.title,
+    sessionNumber: sessionPlan.sessionNumber,
+    sessionTitle: sessionPlan.title,
+    sessionDuration: sessionPlan.duration,
+    sessionObjectives,
+  });
 
   try {
     // Check if OpenAI is configured
@@ -250,20 +221,19 @@ Respond with well-structured HTML content only.`;
     }
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: OPENAI_MODEL,
       messages: [
         {
           role: "system",
-          content:
-            "You are an expert educational content creator specializing in detailed lesson planning for Indian school standards. Always respond with clean, well-structured HTML.",
+          content: AI_PROMPTS.SESSION_DETAIL_SYSTEM,
         },
         {
           role: "user",
           content: prompt,
         },
       ],
-      max_tokens: 2500,
-      temperature: 0.7,
+      max_tokens: AI_CONFIG.SESSION_DETAIL_MAX_TOKENS,
+      temperature: AI_CONFIG.SESSION_DETAIL_TEMPERATURE,
     });
 
     const content = completion.choices[0]?.message?.content;

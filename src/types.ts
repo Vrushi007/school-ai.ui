@@ -61,7 +61,6 @@ export interface GeneratedContent {
 }
 
 export interface AppState {
-  user: User | null;
   selectedClass: ClassLevel | null;
   selectedSubject: Subject | null;
   selectedChapter: Chapter | null;

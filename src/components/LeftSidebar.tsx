@@ -19,10 +19,9 @@ import {
   Divider,
 } from "@mui/material";
 import { Assignment, ExpandMore, PlayCircleOutline } from "@mui/icons-material";
-import { UserType, ClassLevel, Subject, Chapter, SessionPlan } from "../types";
+import { ClassLevel, Subject, Chapter, SessionPlan } from "../types";
 
 interface LeftSidebarProps {
-  userType: UserType | null;
   selectedClass: ClassLevel | null;
   selectedSubject: Subject | null;
   selectedChapter: Chapter | null;
@@ -31,7 +30,6 @@ interface LeftSidebarProps {
   chapterOptions: Chapter[];
   sessionPlans: SessionPlan[];
   selectedSessionId: number | null;
-  onUserTypeChange: (userType: UserType | "") => void;
   onClassLevelChange: (classLevel: ClassLevel | "") => void;
   onSubjectChange: (subject: Subject | "") => void;
   onChapterChange: (chapterId: string) => void;
@@ -41,7 +39,6 @@ interface LeftSidebarProps {
 }
 
 const LeftSidebar: React.FC<LeftSidebarProps> = ({
-  userType,
   selectedClass,
   selectedSubject,
   selectedChapter,
@@ -50,7 +47,6 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   chapterOptions,
   sessionPlans,
   selectedSessionId,
-  onUserTypeChange,
   onClassLevelChange,
   onSubjectChange,
   onChapterChange,
@@ -82,19 +78,6 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
           </AccordionSummary>
           <AccordionDetails sx={{ px: 3, pb: 3, pt: 0 }}>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-              <FormControl fullWidth>
-                <InputLabel>User Type</InputLabel>
-                <Select
-                  value={userType || ""}
-                  label="User Type"
-                  onChange={(e) => onUserTypeChange(e.target.value as UserType)}
-                >
-                  <MenuItem value="">Select User Type</MenuItem>
-                  <MenuItem value="teacher">Teacher</MenuItem>
-                  <MenuItem value="student">Student</MenuItem>
-                </Select>
-              </FormControl>
-
               <FormControl fullWidth>
                 <InputLabel>Class</InputLabel>
                 <Select
@@ -143,28 +126,26 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 </Select>
               </FormControl>
 
-              {userType === "teacher" && (
-                <FormControl fullWidth>
-                  <InputLabel>Planned Class Sessions</InputLabel>
-                  <Select
-                    value={plannedSessions || ""}
-                    label="Planned Class Sessions"
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      onPlannedSessionsChange(
-                        value ? parseInt(String(value)) : null
-                      );
-                    }}
-                  >
-                    <MenuItem value="">Select Sessions</MenuItem>
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                      <MenuItem key={num} value={num}>
-                        {num}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )}
+              <FormControl fullWidth>
+                <InputLabel>Planned Class Sessions</InputLabel>
+                <Select
+                  value={plannedSessions || ""}
+                  label="Planned Class Sessions"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    onPlannedSessionsChange(
+                      value ? parseInt(String(value)) : null
+                    );
+                  }}
+                >
+                  <MenuItem value="">Select Sessions</MenuItem>
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                    <MenuItem key={num} value={num}>
+                      {num}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
               <Button
                 variant="contained"
