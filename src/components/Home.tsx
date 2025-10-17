@@ -7,11 +7,11 @@ function Home() {
   const navigate = useNavigate();
 
   const handleTeacherClick = () => {
-    navigate("/teacher");
+    navigate("/school-ai.ui/teacher");
   };
 
   const handleStudentClick = () => {
-    navigate("/student");
+    navigate("/school-ai.ui/student");
   };
 
   return (
