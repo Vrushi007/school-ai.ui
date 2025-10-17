@@ -34,11 +34,11 @@ function App() {
 
       {/* Routes */}
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/teacher" element={<Teacher />} />
-        <Route path="/student" element={<Student />} />
-        <Route path="/lesson-plan" element={<LessonPlanner />} />
+        <Route path="/school-ai.ui" element={<Home />} />
+        <Route path="/school-ai.ui/home" element={<Home />} />
+        <Route path="/school-ai.ui/teacher" element={<Teacher />} />
+        <Route path="/school-ai.ui/student" element={<Student />} />
+        <Route path="/school-ai.ui/lesson-plan" element={<LessonPlanner />} />
       </Routes>
     </Container>
   );
