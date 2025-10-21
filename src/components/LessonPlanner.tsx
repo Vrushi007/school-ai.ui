@@ -13,9 +13,9 @@ import LeftSidebar from "./LeftSidebar";
 import MainContent from "./MainContent";
 import RightSidebar from "./RightSidebar";
 import {
-  generateSessionPlan,
   generateSessionDetail,
-} from "../services/openaiService";
+  generateSessionPlan,
+} from "../services/teacherServices/apiService";
 
 function LessonPlanner() {
   const [state, setState] = useState<AppState>({
@@ -213,7 +213,6 @@ function LessonPlanner() {
         chapter: state.selectedChapter!,
         numberOfSessions: state.plannedSessions!,
       });
-      debugger;
 
       const content: GeneratedContent = {
         id: `session_plan_${Date.now()}`,

@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { Quiz, CheckCircle } from "@mui/icons-material";
 import { Chapter } from "../types";
-import { Question } from "../services/openaiService";
+import { Question } from "../services/teacherServices/types";
 
 interface QuestionPaperMainContentProps {
   isLoading: boolean;

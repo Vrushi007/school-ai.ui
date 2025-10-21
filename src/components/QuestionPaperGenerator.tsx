@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { mockData } from "../mockData";
 import { ClassLevel, Subject, Chapter } from "../types";
 import { Box } from "@mui/material";
-import { generateQuestions, Question } from "../services/openaiService";
 import QuestionPaperLeftSidebar from "./QuestionPaperLeftSidebar";
 import QuestionPaperMainContent from "./QuestionPaperMainContent";
+import { Question } from "../services/teacherServices/types";
+import { generateQuestions } from "../services/teacherServices/apiService";
 
 interface QuestionPaperState {
   selectedClass: ClassLevel | null;
@@ -107,7 +108,7 @@ function QuestionPaperGenerator() {
         const chapterQuestions = questions.map((q) => ({
           ...q,
           id: `${chapter.id}_${q.id}`,
-          question: `[${chapter.title}] ${q.question}`, // Add chapter prefix to question
+          question: `[${chapter.title}] ${q.questionText}`, // Add chapter prefix to question
         }));
 
         allQuestions.push(...chapterQuestions);
