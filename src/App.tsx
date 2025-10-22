@@ -8,6 +8,7 @@ import Home from "./components/Home";
 import Teacher from "./components/Teacher";
 import Student from "./components/Student";
 import QuestionPaperGenerator from "./components/QuestionPaperGenerator";
+import StudentGetAnswers from "./components/StudentGetAnswers";
 import { ROUTES } from "./constants/common";
 
 function App() {
@@ -45,6 +46,10 @@ function App() {
         <Route
           path={ROUTES.QUESTION_PAPER_GENERATOR}
           element={<QuestionPaperGenerator />}
+        />
+        <Route
+          path={ROUTES.STUDENT_GET_ANSWERS}
+          element={<StudentGetAnswers />}
         />
       </Routes>
     </Container>

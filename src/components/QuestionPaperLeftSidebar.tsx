@@ -13,6 +13,8 @@ import {
   AccordionSummary,
   AccordionDetails,
   TextField,
+  Checkbox,
+  ListItemText,
 } from "@mui/material";
 import { Quiz, ExpandMore } from "@mui/icons-material";
 import { ClassLevel, Subject, Chapter } from "../types";
@@ -132,7 +134,16 @@ const QuestionPaperLeftSidebar: React.FC<QuestionPaperLeftSidebarProps> = ({
                 >
                   {chapterOptions.map((chapter, index) => (
                     <MenuItem key={chapter.id} value={chapter.id}>
-                      {index + 1}. {chapter.title}
+                      <Checkbox
+                        checked={selectedChapters.some(
+                          (c) => c.id === chapter.id
+                        )}
+                        sx={{ padding: "4px 8px 4px 0" }}
+                      />
+                      <ListItemText
+                        primary={`${index + 1}. ${chapter.title}`}
+                        sx={{ margin: 0 }}
+                      />
                     </MenuItem>
                   ))}
                 </Select>

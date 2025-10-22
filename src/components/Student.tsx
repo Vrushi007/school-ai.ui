@@ -2,13 +2,13 @@ import React from "react";
 import { Paper, Typography, Box, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { HelpOutline } from "@mui/icons-material";
+import { ROUTES } from "../constants/common";
 
 function Student() {
   const navigate = useNavigate();
 
   const handleGetAnswersClick = () => {
-    // Will implement later
-    console.log("Get answers clicked");
+    navigate(ROUTES.STUDENT_GET_ANSWERS);
   };
 
   return (
