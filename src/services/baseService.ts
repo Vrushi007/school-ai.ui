@@ -2,6 +2,12 @@
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
 
+// Log the API URL for debugging (only in development)
+if (process.env.NODE_ENV === "development") {
+  console.log("API Base URL:", API_BASE_URL);
+  console.log("Environment:", process.env.NODE_ENV);
+}
+
 // Helper function to make API calls to your server
 export const makePostRequest = async (endpoint: string, body: any) => {
   try {

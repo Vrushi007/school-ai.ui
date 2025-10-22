@@ -26,9 +26,10 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build:production": "REACT_APP_API_BASE_URL=https://school-ai-api.onrender.com react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "predeploy": "npm run build",
+    "predeploy": "npm run build:production",
     "deploy": "gh-pages -d build"
   },
   "homepage": "https://Vrushi007.github.io/school-ai.ui",
