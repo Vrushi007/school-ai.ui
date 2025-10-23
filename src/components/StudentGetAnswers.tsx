@@ -10,13 +10,31 @@ import {
   IconButton,
   Divider,
   Container,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
-import { Send, Psychology, Person, Clear, SmartToy } from "@mui/icons-material";
+import {
+  Send,
+  Psychology,
+  Person,
+  Clear,
+  SmartToy,
+  FileDownload,
+  ContentCopy,
+  PictureAsPdf,
+} from "@mui/icons-material";
 import {
   askQuestion,
   createQuestionRequest,
 } from "../services/studentServices/apiService";
 import { ChatMessage, ChatState } from "../services/studentServices/types";
+import {
+  downloadAsPDF,
+  copyToClipboard,
+  sanitizeFilename,
+} from "../services/exportServices/sessionPlanExport";
 
 const StudentGetAnswers: React.FC = () => {
   const [chatState, setChatState] = useState<ChatState>({
@@ -26,6 +44,9 @@ const StudentGetAnswers: React.FC = () => {
     conversationHistory: [],
   });
   const [currentQuestion, setCurrentQuestion] = useState("");
+  const [exportMenuAnchor, setExportMenuAnchor] = useState<HTMLElement | null>(
+    null
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages are added
@@ -113,6 +134,112 @@ const StudentGetAnswers: React.FC = () => {
     }
   };
 
+  // Export functionality
+  const handleExportMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setExportMenuAnchor(event.currentTarget);
+  };
+
+  const handleExportMenuClose = () => {
+    setExportMenuAnchor(null);
+  };
+
+  const formatChatForExport = () => {
+    if (chatState.messages.length === 0) return "";
+
+    const chatContent = chatState.messages
+      .map((message) => {
+        const role = message.role === "user" ? "Student" : "AI Assistant";
+        const timestamp = message.timestamp.toLocaleString();
+        return `[${timestamp}] ${role}:\n${message.content}\n`;
+      })
+      .join("\n");
+
+    return `Study Session Chat\n${"=".repeat(50)}\nConversation ID: ${
+      chatState.conversationId || "N/A"
+    }\nDate: ${new Date().toLocaleString()}\n\n${chatContent}`;
+  };
+
+  const formatChatForPDF = () => {
+    if (chatState.messages.length === 0) return "";
+
+    const chatContent = chatState.messages
+      .map((message) => {
+        const role = message.role === "user" ? "Student" : "AI Assistant";
+        const timestamp = message.timestamp.toLocaleString();
+        return `
+        <div class="message ${message.role}">
+          <div class="message-header">
+            <strong>${role}</strong>
+            <span class="timestamp">${timestamp}</span>
+          </div>
+          <div class="message-content">${message.content.replace(
+            /\n/g,
+            "<br>"
+          )}</div>
+        </div>`;
+      })
+      .join("");
+
+    return `
+      <div class="header">
+        <h1>Study Session Chat</h1>
+        <p><strong>Conversation ID:</strong> ${
+          chatState.conversationId || "N/A"
+        }</p>
+        <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+        <p><strong>Total Messages:</strong> ${chatState.messages.length}</p>
+      </div>
+      
+      <div class="chat-container">
+        ${chatContent}
+      </div>
+      
+      <style>
+        .message { margin-bottom: 15px; padding: 10px; border-radius: 8px; }
+        .message.user { background-color: #e3f2fd; border-left: 4px solid #1976d2; }
+        .message.assistant { background-color: #f3e5f5; border-left: 4px solid #7b1fa2; }
+        .message-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .timestamp { font-size: 0.8em; color: #666; }
+        .message-content { line-height: 1.4; }
+        .chat-container { margin-top: 20px; }
+      </style>`;
+  };
+
+  const handleExportAsPDF = () => {
+    if (chatState.messages.length === 0) {
+      alert("No conversation to export. Start chatting first!");
+      return;
+    }
+
+    const htmlContent = formatChatForPDF();
+    const filename = sanitizeFilename(
+      `study_session_${chatState.conversationId || Date.now()}`
+    );
+    downloadAsPDF(htmlContent, filename, "Study Session Chat");
+    handleExportMenuClose();
+  };
+
+  const handleCopyToClipboard = async () => {
+    if (chatState.messages.length === 0) {
+      alert("No conversation to copy. Start chatting first!");
+      return;
+    }
+
+    const textContent = formatChatForExport();
+    try {
+      const success = await copyToClipboard(textContent);
+      if (success) {
+        console.log("Chat copied to clipboard");
+        // You could add a toast notification here
+      } else {
+        console.error("Failed to copy to clipboard");
+      }
+    } catch (err) {
+      console.error("Failed to copy to clipboard:", err);
+    }
+    handleExportMenuClose();
+  };
+
   // Clear chat history
   const handleClearChat = () => {
     setChatState({
@@ -161,15 +288,53 @@ const StudentGetAnswers: React.FC = () => {
               </Typography>
             </Box>
           </Box>
+
           {chatState.messages.length > 0 && (
-            <IconButton
-              onClick={handleClearChat}
-              sx={{ color: "white" }}
-              title="Clear chat"
-            >
-              <Clear />
-            </IconButton>
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <IconButton
+                onClick={handleExportMenuOpen}
+                sx={{ color: "white" }}
+                title="Export conversation"
+              >
+                <FileDownload />
+              </IconButton>
+              <IconButton
+                onClick={handleClearChat}
+                sx={{ color: "white" }}
+                title="Clear chat"
+              >
+                <Clear />
+              </IconButton>
+            </Box>
           )}
+
+          {/* Export Menu */}
+          <Menu
+            anchorEl={exportMenuAnchor}
+            open={Boolean(exportMenuAnchor)}
+            onClose={handleExportMenuClose}
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "right",
+            }}
+            transformOrigin={{
+              vertical: "top",
+              horizontal: "right",
+            }}
+          >
+            <MenuItem onClick={handleExportAsPDF}>
+              <ListItemIcon>
+                <PictureAsPdf fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Export as PDF (.pdf)" />
+            </MenuItem>
+            <MenuItem onClick={handleCopyToClipboard}>
+              <ListItemIcon>
+                <ContentCopy fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Copy to Clipboard" />
+            </MenuItem>
+          </Menu>
         </Box>
 
         {/* Messages Area */}
