@@ -7,10 +7,24 @@ import {
   Modal,
   CircularProgress,
   IconButton,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
-import { Close, MenuBook } from "@mui/icons-material";
+import {
+  Close,
+  MenuBook,
+  FileDownload,
+  ContentCopy,
+  PictureAsPdf,
+} from "@mui/icons-material";
 import { SessionPlan, UserType, ClassLevel, Subject, Chapter } from "../types";
 import { generateSessionDetail } from "../services/teacherServices/apiService";
+import {
+  downloadAsPDF,
+  copyToClipboard,
+} from "../services/exportServices/sessionPlanExport";
 
 interface SessionPlanRendererProps {
   sessionPlans: SessionPlan[];
@@ -63,6 +77,7 @@ interface DetailModalState {
   htmlContent?: string; // For fallback HTML content
   title: string;
   isLoading: boolean;
+  exportMenuAnchor: HTMLElement | null;
 }
 
 const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
@@ -77,6 +92,7 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
     content: null,
     title: "",
     isLoading: false,
+    exportMenuAnchor: null,
   });
 
   const handleGetDetails = async (session: SessionPlan) => {
@@ -85,6 +101,7 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
       content: null,
       title: `${session.title} - Detailed Lesson Plan`,
       isLoading: !session.detailContent, // Don't show loading if we have cached content
+      exportMenuAnchor: null,
     });
 
     // Check if we already have cached detailed content
@@ -157,7 +174,364 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
       content: null,
       title: "",
       isLoading: false,
+      exportMenuAnchor: null,
     });
+  };
+
+  // Export functionality
+  const handleExportMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setModalState((prev) => ({
+      ...prev,
+      exportMenuAnchor: event.currentTarget,
+    }));
+  };
+
+  const handleExportMenuClose = () => {
+    setModalState((prev) => ({
+      ...prev,
+      exportMenuAnchor: null,
+    }));
+  };
+
+  const convertContentToText = (
+    content: SessionDetailContent | null,
+    htmlContent?: string
+  ): string => {
+    if (content) {
+      // Convert structured content to text
+      let text = `${content.sessionTitle}\n`;
+      text += `Duration: ${content.duration}\n\n`;
+
+      text += "INTRODUCTION\n";
+      text += `Hook: ${content.introduction.hook}\n`;
+      text += `Overview: ${content.introduction.overview}\n`;
+      if (content.introduction.previousConnection) {
+        text += `Previous Connection: ${content.introduction.previousConnection}\n`;
+      }
+      text += "\n";
+
+      text += "MAIN CONTENT\n";
+      text += "Key Concepts:\n";
+      content.mainContent.keyConcepts.forEach((concept, i) => {
+        text += `${i + 1}. ${concept}\n`;
+      });
+      text += "\nTeaching Sequence:\n";
+      content.mainContent.teachingSequence.forEach((step, i) => {
+        text += `${i + 1}. ${step}\n`;
+      });
+
+      if (
+        content.mainContent.formulas &&
+        content.mainContent.formulas.length > 0
+      ) {
+        text += "\nKey Formulas:\n";
+        content.mainContent.formulas.forEach((formula) => {
+          text += `• ${formula}\n`;
+        });
+      }
+
+      if (
+        content.mainContent.examples &&
+        content.mainContent.examples.length > 0
+      ) {
+        text += "\nExamples:\n";
+        content.mainContent.examples.forEach((example) => {
+          text += `• ${example}\n`;
+        });
+      }
+      text += "\n";
+
+      text += "ACTIVITIES\n";
+      text += "Interactive Activities:\n";
+      content.activities.interactive.forEach((activity) => {
+        text += `• ${activity}\n`;
+      });
+
+      if (
+        content.activities.practiceProblems &&
+        content.activities.practiceProblems.length > 0
+      ) {
+        text += "\nPractice Problems:\n";
+        content.activities.practiceProblems.forEach((problem, i) => {
+          text += `${i + 1}. ${problem}\n`;
+        });
+      }
+
+      if (content.activities.groupWork) {
+        text += `\nGroup Work: ${content.activities.groupWork}\n`;
+      }
+
+      if (
+        content.activities.experiments &&
+        content.activities.experiments.length > 0
+      ) {
+        text += "\nExperiments:\n";
+        content.activities.experiments.forEach((experiment) => {
+          text += `• ${experiment}\n`;
+        });
+      }
+      text += "\n";
+
+      text += "ASSESSMENT\n";
+      text += "Quick Questions:\n";
+      content.assessment.quickQuestions.forEach((question) => {
+        text += `• ${question}\n`;
+      });
+      text += `\nExit Ticket: ${content.assessment.exitTicket}\n`;
+      text += `Homework: ${content.assessment.homework}\n\n`;
+
+      text += "RESOURCES\n";
+      text += "Materials Needed:\n";
+      content.resources.materials.forEach((material) => {
+        text += `• ${material}\n`;
+      });
+      text += "\nReferences:\n";
+      content.resources.references.forEach((reference) => {
+        text += `• ${reference}\n`;
+      });
+
+      if (
+        content.resources.additionalReading &&
+        content.resources.additionalReading.length > 0
+      ) {
+        text += "\nAdditional Reading:\n";
+        content.resources.additionalReading.forEach((reading) => {
+          text += `• ${reading}\n`;
+        });
+      }
+
+      if (content.differentiation) {
+        text += "\nDIFFERENTIATION STRATEGIES\n";
+        if (content.differentiation.strugglingLearners) {
+          text += `For Struggling Learners: ${content.differentiation.strugglingLearners}\n`;
+        }
+        if (content.differentiation.advancedStudents) {
+          text += `For Advanced Students: ${content.differentiation.advancedStudents}\n`;
+        }
+        if (content.differentiation.multipleStyles) {
+          text += `Multiple Learning Styles: ${content.differentiation.multipleStyles}\n`;
+        }
+      }
+
+      return text;
+    } else if (htmlContent) {
+      // Convert HTML to text (basic conversion)
+      return htmlContent
+        .replace(/<[^>]*>/g, "") // Remove HTML tags
+        .replace(/&nbsp;/g, " ")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&amp;/g, "&")
+        .trim();
+    }
+    return "";
+  };
+
+  const handleCopyToClipboard = async () => {
+    const textContent = convertContentToText(
+      modalState.content,
+      modalState.htmlContent
+    );
+    try {
+      const success = await copyToClipboard(textContent);
+      if (success) {
+        console.log("Content copied to clipboard");
+        // You could add a toast notification here
+      } else {
+        console.error("Failed to copy to clipboard");
+      }
+    } catch (err) {
+      console.error("Failed to copy to clipboard:", err);
+    }
+    handleExportMenuClose();
+  };
+
+  const handleExportAsPDF = () => {
+    let htmlContent = "";
+
+    if (modalState.content) {
+      // Convert structured content to HTML for PDF
+      const content = modalState.content;
+      htmlContent = `
+<div class="header">
+    <h1>${content.sessionTitle}</h1>
+    <p><strong>Duration:</strong> ${content.duration}</p>
+</div>
+
+<div class="section">
+    <h2>Introduction</h2>
+    <h3>Hook</h3>
+    <p>${content.introduction.hook}</p>
+    <h3>Overview</h3>
+    <p>${content.introduction.overview}</p>
+    ${
+      content.introduction.previousConnection
+        ? `<h3>Previous Connection</h3><p>${content.introduction.previousConnection}</p>`
+        : ""
+    }
+</div>
+
+<div class="section">
+    <h2>Main Content</h2>
+    <h3>Key Concepts</h3>
+    <ul>
+        ${content.mainContent.keyConcepts
+          .map((concept) => `<li>${concept}</li>`)
+          .join("")}
+    </ul>
+    <h3>Teaching Sequence</h3>
+    <ol>
+        ${content.mainContent.teachingSequence
+          .map((step) => `<li>${step}</li>`)
+          .join("")}
+    </ol>
+    ${
+      content.mainContent.formulas && content.mainContent.formulas.length > 0
+        ? `
+    <h3>Key Formulas</h3>
+    ${content.mainContent.formulas
+      .map((formula) => `<div class="formula">${formula}</div>`)
+      .join("")}
+    `
+        : ""
+    }
+    ${
+      content.mainContent.examples && content.mainContent.examples.length > 0
+        ? `
+    <h3>Examples</h3>
+    <ul>
+        ${content.mainContent.examples
+          .map((example) => `<li>${example}</li>`)
+          .join("")}
+    </ul>
+    `
+        : ""
+    }
+</div>
+
+<div class="section">
+    <h2>Activities</h2>
+    <h3>Interactive Activities</h3>
+    <ul>
+        ${content.activities.interactive
+          .map((activity) => `<li>${activity}</li>`)
+          .join("")}
+    </ul>
+    ${
+      content.activities.practiceProblems &&
+      content.activities.practiceProblems.length > 0
+        ? `
+    <h3>Practice Problems</h3>
+    <ol>
+        ${content.activities.practiceProblems
+          .map((problem) => `<li>${problem}</li>`)
+          .join("")}
+    </ol>
+    `
+        : ""
+    }
+    ${
+      content.activities.groupWork
+        ? `<h3>Group Work</h3><p>${content.activities.groupWork}</p>`
+        : ""
+    }
+    ${
+      content.activities.experiments &&
+      content.activities.experiments.length > 0
+        ? `
+    <h3>Experiments</h3>
+    <ul>
+        ${content.activities.experiments
+          .map((experiment) => `<li>${experiment}</li>`)
+          .join("")}
+    </ul>
+    `
+        : ""
+    }
+</div>
+
+<div class="section">
+    <h2>Assessment</h2>
+    <h3>Quick Questions</h3>
+    <ul>
+        ${content.assessment.quickQuestions
+          .map((question) => `<li>${question}</li>`)
+          .join("")}
+    </ul>
+    <h3>Exit Ticket</h3>
+    <p>${content.assessment.exitTicket}</p>
+    <h3>Homework</h3>
+    <p>${content.assessment.homework}</p>
+</div>
+
+<div class="section">
+    <h2>Resources</h2>
+    <h3>Materials Needed</h3>
+    <ul>
+        ${content.resources.materials
+          .map((material) => `<li>${material}</li>`)
+          .join("")}
+    </ul>
+    <h3>References</h3>
+    <ul>
+        ${content.resources.references
+          .map((reference) => `<li>${reference}</li>`)
+          .join("")}
+    </ul>
+    ${
+      content.resources.additionalReading &&
+      content.resources.additionalReading.length > 0
+        ? `
+    <h3>Additional Reading</h3>
+    <ul>
+        ${content.resources.additionalReading
+          .map((reading) => `<li>${reading}</li>`)
+          .join("")}
+    </ul>
+    `
+        : ""
+    }
+</div>
+
+${
+  content.differentiation
+    ? `
+<div class="section">
+    <h2>Differentiation Strategies</h2>
+    ${
+      content.differentiation.strugglingLearners
+        ? `<h3>For Struggling Learners</h3><p>${content.differentiation.strugglingLearners}</p>`
+        : ""
+    }
+    ${
+      content.differentiation.advancedStudents
+        ? `<h3>For Advanced Students</h3><p>${content.differentiation.advancedStudents}</p>`
+        : ""
+    }
+    ${
+      content.differentiation.multipleStyles
+        ? `<h3>Multiple Learning Styles</h3><p>${content.differentiation.multipleStyles}</p>`
+        : ""
+    }
+</div>
+`
+    : ""
+}
+
+<div class="note">
+    <strong>Note:</strong> This AI-generated lesson plan provides a structured framework for teaching. 
+    Feel free to adapt the content, duration, and activities based on your students' needs and classroom dynamics.
+</div>`;
+    } else if (modalState.htmlContent) {
+      // Use existing HTML content
+      htmlContent = modalState.htmlContent;
+    }
+
+    // Import the downloadAsPDF function from utils
+    const filename = modalState.title.replace(/[^a-z0-9]/gi, "_").toLowerCase();
+    downloadAsPDF(htmlContent, filename, modalState.title);
+
+    handleExportMenuClose();
   };
 
   const renderStructuredContent = (content: SessionDetailContent) => {
@@ -806,10 +1180,60 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
             <Typography variant="h5" sx={{ fontWeight: 600 }}>
               {modalState.title}
             </Typography>
-            <IconButton onClick={handleCloseModal}>
-              <Close />
-            </IconButton>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              {/* Export Button */}
+              {(modalState.content || modalState.htmlContent) &&
+                !modalState.isLoading && (
+                  <Button
+                    variant="outlined"
+                    startIcon={<FileDownload />}
+                    onClick={handleExportMenuOpen}
+                    size="small"
+                    sx={{
+                      borderColor: "primary.main",
+                      color: "primary.main",
+                      "&:hover": {
+                        backgroundColor: "primary.main",
+                        color: "white",
+                      },
+                    }}
+                  >
+                    Export
+                  </Button>
+                )}
+              <IconButton onClick={handleCloseModal}>
+                <Close />
+              </IconButton>
+            </Box>
           </Box>
+
+          {/* Export Menu */}
+          <Menu
+            anchorEl={modalState.exportMenuAnchor}
+            open={Boolean(modalState.exportMenuAnchor)}
+            onClose={handleExportMenuClose}
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "right",
+            }}
+            transformOrigin={{
+              vertical: "top",
+              horizontal: "right",
+            }}
+          >
+            <MenuItem onClick={handleExportAsPDF}>
+              <ListItemIcon>
+                <PictureAsPdf fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Export as PDF (.pdf)" />
+            </MenuItem>
+            <MenuItem onClick={handleCopyToClipboard}>
+              <ListItemIcon>
+                <ContentCopy fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Copy to Clipboard" />
+            </MenuItem>
+          </Menu>
 
           {/* Modal Content */}
           {modalState.isLoading ? (
