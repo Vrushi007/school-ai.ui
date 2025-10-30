@@ -5,7 +5,7 @@ import { ClassLevel, Subject, Chapter, AppState } from "../types";
  * Generates a content title based on the current app state
  */
 export const getContentTitle = (state: AppState): string => {
-  let title = "Welcome to LearnAI";
+  let title = "Welcome to VYON";
 
   if (state.selectedTopic && state.selectedChapter) {
     title = `${state.selectedChapter.title} - ${state.selectedTopic.title}`;

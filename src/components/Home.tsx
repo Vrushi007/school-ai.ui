@@ -26,7 +26,7 @@ function Home() {
           gutterBottom
           sx={{ fontWeight: 600 }}
         >
-          Welcome to LearnAI
+          Welcome to VYON
         </Typography>
 
         <Typography
