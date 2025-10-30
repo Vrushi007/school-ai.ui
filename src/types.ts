@@ -4,12 +4,7 @@ export type UserType = "teacher" | "student";
 
 export type ClassLevel = "8th" | "9th" | "10th";
 
-export type Subject =
-  | "mathematics"
-  | "science"
-  | "english"
-  | "history"
-  | "geography";
+export type Subject = string; // Allow any subject that exists in the data
 
 export interface User {
   type: UserType;
@@ -23,6 +18,7 @@ export interface Chapter {
   classLevel: ClassLevel;
   topics: Topic[];
   description?: string;
+  weightage?: number;
 }
 
 export interface Topic {
@@ -73,5 +69,5 @@ export interface AppState {
 
 // Mock data structure for chapters and topics
 export interface MockData {
-  chapters: Record<ClassLevel, Record<Subject, Chapter[]>>;
+  chapters: Record<ClassLevel, Record<string, Chapter[]>>; // Allow any subject keys
 }

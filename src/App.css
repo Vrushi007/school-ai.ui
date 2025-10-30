@@ -35,7 +35,7 @@ body {
 /* Main Layout */
 .main-layout {
     display: grid;
-    grid-template-columns: 280px 1fr 300px;
+    grid-template-columns: 350px 1fr 380px;
     flex: 1;
     gap: 0;
     min-height: calc(100vh - 80px);
@@ -304,7 +304,7 @@ body {
 /* Responsive Design */
 @media (max-width: 1024px) {
     .main-layout {
-        grid-template-columns: 260px 1fr 280px;
+        grid-template-columns: 320px 1fr 340px;
     }
     
     .header {
@@ -390,6 +390,44 @@ body {
     .content-area {
         padding: 0;
         box-shadow: none;
+    }
+}
+
+/* Material-UI Container Override - Force full width */
+.MuiContainer-root,
+.css-1oz37sp-MuiContainer-root {
+    max-width: none !important;
+    width: 98% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Override all Material-UI Container breakpoint max-widths */
+@media (min-width: 600px) {
+    .MuiContainer-root,
+    .css-1oz37sp-MuiContainer-root {
+        max-width: none !important;
+    }
+}
+
+@media (min-width: 900px) {
+    .MuiContainer-root,
+    .css-1oz37sp-MuiContainer-root {
+        max-width: none !important;
+    }
+}
+
+@media (min-width: 1200px) {
+    .MuiContainer-root,
+    .css-1oz37sp-MuiContainer-root {
+        max-width: none !important;
+    }
+}
+
+@media (min-width: 1536px) {
+    .MuiContainer-root,
+    .css-1oz37sp-MuiContainer-root {
+        max-width: none !important;
     }
 }
 

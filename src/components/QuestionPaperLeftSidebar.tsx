@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import { Quiz, ExpandMore } from "@mui/icons-material";
 import { ClassLevel, Subject, Chapter } from "../types";
+import { getClasses, getSubjectsForClass } from "../utils/teacherUtils";
 
 interface QuestionPaperLeftSidebarProps {
   selectedClass: ClassLevel | null;
@@ -81,9 +82,11 @@ const QuestionPaperLeftSidebar: React.FC<QuestionPaperLeftSidebarProps> = ({
                   }
                 >
                   <MenuItem value="">Select Class</MenuItem>
-                  <MenuItem value="8th">8th Standard</MenuItem>
-                  <MenuItem value="9th">9th Standard</MenuItem>
-                  <MenuItem value="10th">10th Standard</MenuItem>
+                  {getClasses().map((classLevel) => (
+                    <MenuItem key={classLevel} value={classLevel}>
+                      {classLevel} Standard
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
 
@@ -95,11 +98,11 @@ const QuestionPaperLeftSidebar: React.FC<QuestionPaperLeftSidebarProps> = ({
                   onChange={(e) => onSubjectChange(e.target.value as Subject)}
                 >
                   <MenuItem value="">Select Subject</MenuItem>
-                  <MenuItem value="mathematics">Mathematics</MenuItem>
-                  <MenuItem value="science">Science</MenuItem>
-                  <MenuItem value="english">English</MenuItem>
-                  <MenuItem value="history">History</MenuItem>
-                  <MenuItem value="geography">Geography</MenuItem>
+                  {getSubjectsForClass(selectedClass).map((subject) => (
+                    <MenuItem key={subject} value={subject}>
+                      {subject.charAt(0).toUpperCase() + subject.slice(1)}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
 

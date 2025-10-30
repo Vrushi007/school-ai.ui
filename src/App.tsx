@@ -1,7 +1,6 @@
 import React from "react";
 import "./App.css";
-import { Container, Paper, Typography } from "@mui/material";
-import { School } from "@mui/icons-material";
+import { Box, Container, Paper, Typography } from "@mui/material";
 import { Routes, Route, Link, Navigate } from "react-router-dom";
 import LessonPlanner from "./components/LessonPlanner";
 import Home from "./components/Home";
@@ -10,6 +9,7 @@ import Student from "./components/Student";
 import QuestionPaperGenerator from "./components/QuestionPaperGenerator";
 import StudentGetAnswers from "./components/StudentGetAnswers";
 import { ROUTES } from "./constants/common";
+import companyLogo from "../src/assets/images/company-logo.jpeg";
 
 function App() {
   return (
@@ -19,19 +19,42 @@ function App() {
         elevation={3}
         sx={{
           mb: 3,
-          p: 3,
           background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         }}
       >
         <Link to="/school-ai.ui" style={{ textDecoration: "none" }}>
-          <Typography
-            variant="h4"
-            component="h1"
-            sx={{ color: "white", fontWeight: 600 }}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              p: 2,
+            }}
           >
-            <School sx={{ mr: 2, verticalAlign: "middle" }} />
-            LearnAI Educational Platform
-          </Typography>
+            {/* Company Logo */}
+            <Box
+              component="img"
+              src={companyLogo}
+              alt="Company Logo"
+              sx={{
+                width: 50,
+                height: 50,
+                objectFit: "contain",
+              }}
+            />
+            {/* Company Name */}
+            <Typography
+              variant="h5"
+              component="h1"
+              sx={{
+                color: "white",
+                fontWeight: 600,
+                letterSpacing: "0.5px",
+              }}
+            >
+              VYON Boundless Knowledge
+            </Typography>
+          </Box>
         </Link>
       </Paper>
 

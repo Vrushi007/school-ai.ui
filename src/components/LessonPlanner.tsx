@@ -16,6 +16,8 @@ import {
   generateSessionDetail,
   generateSessionPlan,
 } from "../services/teacherServices/apiService";
+import { canGenerateContent, getChapterOptions, getContentTitle } from "../utils/teacherUtils";
+
 
 function LessonPlanner() {
   const [state, setState] = useState<AppState>({
@@ -177,17 +179,8 @@ function LessonPlanner() {
     }
   };
 
-  const canGenerateContent = (): boolean => {
-    return !!(
-      state.selectedClass &&
-      state.selectedSubject &&
-      state.selectedChapter &&
-      state.plannedSessions
-    );
-  };
-
   const handleGenerateContent = async (): Promise<void> => {
-    if (!canGenerateContent()) {
+    if (!canGenerateContent(state)) {
       alert(
         `Please select class, subject, chapter, and planned sessions before generating content.`
       );
@@ -235,30 +228,6 @@ function LessonPlanner() {
     }
   };
 
-  const getContentTitle = (): string => {
-    let title = "Welcome to LearnAI";
-
-    if (state.selectedTopic && state.selectedChapter) {
-      title = `${state.selectedChapter.title} - ${state.selectedTopic.title}`;
-    } else if (state.selectedChapter) {
-      title = state.selectedChapter.title;
-    } else if (state.selectedSubject && state.selectedClass) {
-      title = `${
-        state.selectedSubject.charAt(0).toUpperCase() +
-        state.selectedSubject.slice(1)
-      } - Class ${state.selectedClass}`;
-    }
-
-    return title;
-  };
-
-  const getChapterOptions = () => {
-    if (!state.selectedClass || !state.selectedSubject) return [];
-    return (
-      mockData.chapters[state.selectedClass]?.[state.selectedSubject] || []
-    );
-  };
-
   return (
     <Box
       sx={{
@@ -273,7 +242,10 @@ function LessonPlanner() {
         selectedChapter={state.selectedChapter}
         plannedSessions={state.plannedSessions}
         isLoading={state.isLoading}
-        chapterOptions={getChapterOptions()}
+        chapterOptions={getChapterOptions(
+          state.selectedClass,
+          state.selectedSubject
+        )}
         sessionPlans={state.currentContent?.sessionPlans || []}
         selectedSessionId={state.selectedSessionId}
         onClassLevelChange={handleClassLevelChange}
@@ -284,7 +256,7 @@ function LessonPlanner() {
         onSessionSelect={handleSessionSelect}
       />
       <MainContent
-        title={getContentTitle()}
+        title={getContentTitle(state)}
         isLoading={state.isLoading}
         currentContent={state.currentContent}
         userType="teacher" // Always teacher for lesson planning
