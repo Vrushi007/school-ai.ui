@@ -1,12 +1,13 @@
 {
   "files": {
-    "main.css": "/school-ai.ui/static/css/main.92ff3c72.css",
-    "main.js": "/school-ai.ui/static/js/main.1ea4de5d.js",
+    "main.css": "/school-ai.ui/static/css/main.50a18e43.css",
+    "main.js": "/school-ai.ui/static/js/main.bb33d380.js",
     "static/js/206.5721b579.chunk.js": "/school-ai.ui/static/js/206.5721b579.chunk.js",
+    "static/media/company-logo.jpeg": "/school-ai.ui/static/media/company-logo.16807b51598efc059750.jpeg",
     "index.html": "/school-ai.ui/index.html"
   },
   "entrypoints": [
-    "static/css/main.92ff3c72.css",
-    "static/js/main.1ea4de5d.js"
+    "static/css/main.50a18e43.css",
+    "static/js/main.bb33d380.js"
   ]
 }
