@@ -36,38 +36,97 @@ interface SessionPlanRendererProps {
 
 interface SessionDetailContent {
   sessionTitle: string;
+  subject: string;
+  class: string;
   duration: string;
-  introduction: {
-    hook: string;
+  summary: string;
+  objectives: string[];
+  teachingScript: {
     overview: string;
-    previousConnection?: string;
+    stepByStep: Array<{
+      time: string;
+      teacherLines: string;
+      studentActivity: string;
+    }>;
+    transitions: string;
   };
-  mainContent: {
-    keyConcepts: string[];
-    teachingSequence: string[];
-    formulas?: string[];
-    examples?: string[];
+  boardWorkPlan: {
+    definitions: string[];
+    lawsOrRules: Array<{
+      name: string;
+      statement: string;
+      notation: string;
+    }>;
+    diagramsToDraw: Array<{
+      label: string;
+      instructions: string;
+      placeholderTag: string;
+    }>;
+    keywords: string[];
+  };
+  detailedExplanations: {
+    subtopics: Array<{
+      title: string;
+      explanation: string;
+      example: string;
+      diagram: string;
+      comparisonTable?: {
+        useIfRelevant: boolean;
+        headers: string[];
+        rows: string[][];
+      };
+      classroomTips: string;
+    }>;
+    formulasAndDerivations: any[];
   };
   activities: {
-    interactive: string[];
-    practiceProblems?: string[];
-    groupWork?: string;
-    experiments?: string[];
+    warmUpHook: string;
+    interactive: Array<{
+      name: string;
+      type: string;
+      steps: string[];
+      time: string;
+      materials: string[];
+      expectedOutcome: string;
+    }>;
+    practiceProblems: Array<{
+      problem: string;
+      difficulty: string;
+      answer: string;
+    }>;
+    groupWork: {
+      task: string;
+      roles: string[];
+      successCriteria: string;
+    };
+    experiments: any[];
+  };
+  wrapUp: {
+    summary: string[];
+    engagementQuestions: string[];
+    closureActivity: string;
+  };
+  quickAssessment: {
+    fiveQandA: Array<{
+      q: string;
+      a: string;
+    }>;
+    formatHints: string;
   };
   assessment: {
-    quickQuestions: string[];
     exitTicket: string;
     homework: string;
+    rubricOrMarkingHints: string;
   };
   resources: {
     materials: string[];
     references: string[];
-    additionalReading?: string[];
+    additionalReadingOrMedia: string[];
   };
-  differentiation?: {
-    strugglingLearners?: string;
-    advancedStudents?: string;
-    multipleStyles?: string;
+  differentiation: {
+    strugglingLearners: string;
+    advancedStudents: string;
+    multipleLearningStyles: string;
   };
 }
 
@@ -200,88 +259,87 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
     if (content) {
       // Convert structured content to text
       let text = `${content.sessionTitle}\n`;
+      text += `Subject: ${content.subject}\n`;
+      text += `Class: ${content.class}\n`;
       text += `Duration: ${content.duration}\n\n`;
+      text += `Summary: ${content.summary}\n\n`;
 
-      text += "INTRODUCTION\n";
-      text += `Hook: ${content.introduction.hook}\n`;
-      text += `Overview: ${content.introduction.overview}\n`;
-      if (content.introduction.previousConnection) {
-        text += `Previous Connection: ${content.introduction.previousConnection}\n`;
-      }
+      text += "OBJECTIVES\n";
+      content.objectives.forEach((objective, i) => {
+        text += `${i + 1}. ${objective}\n`;
+      });
       text += "\n";
 
-      text += "MAIN CONTENT\n";
-      text += "Key Concepts:\n";
-      content.mainContent.keyConcepts.forEach((concept, i) => {
-        text += `${i + 1}. ${concept}\n`;
+      text += "TEACHING SCRIPT\n";
+      text += `Overview: ${content.teachingScript.overview}\n\n`;
+      text += "Step-by-Step Teaching:\n";
+      content.teachingScript.stepByStep.forEach((step, i) => {
+        text += `${i + 1}. ${step.time} - ${step.teacherLines}\n`;
+        text += `   Student Activity: ${step.studentActivity}\n`;
       });
-      text += "\nTeaching Sequence:\n";
-      content.mainContent.teachingSequence.forEach((step, i) => {
-        text += `${i + 1}. ${step}\n`;
+      text += `\nTransitions: ${content.teachingScript.transitions}\n\n`;
+
+      text += "BOARD WORK PLAN\n";
+      text += "Definitions:\n";
+      content.boardWorkPlan.definitions.forEach((definition) => {
+        text += `• ${definition}\n`;
       });
+      text += "\nLaws/Rules:\n";
+      content.boardWorkPlan.lawsOrRules.forEach((rule) => {
+        text += `• ${rule.name}: ${rule.statement} (${rule.notation})\n`;
+      });
+      text += "\nDiagrams to Draw:\n";
+      content.boardWorkPlan.diagramsToDraw.forEach((diagram) => {
+        text += `• ${diagram.label}: ${diagram.instructions}\n`;
+      });
+      text +=
+        "\nKeywords: " + content.boardWorkPlan.keywords.join(", ") + "\n\n";
 
-      if (
-        content.mainContent.formulas &&
-        content.mainContent.formulas.length > 0
-      ) {
-        text += "\nKey Formulas:\n";
-        content.mainContent.formulas.forEach((formula) => {
-          text += `• ${formula}\n`;
-        });
-      }
-
-      if (
-        content.mainContent.examples &&
-        content.mainContent.examples.length > 0
-      ) {
-        text += "\nExamples:\n";
-        content.mainContent.examples.forEach((example) => {
-          text += `• ${example}\n`;
-        });
-      }
-      text += "\n";
+      text += "DETAILED EXPLANATIONS\n";
+      content.detailedExplanations.subtopics.forEach((subtopic) => {
+        text += `${subtopic.title}:\n`;
+        text += `${subtopic.explanation}\n`;
+        text += `Example: ${subtopic.example}\n`;
+        text += `Tips: ${subtopic.classroomTips}\n\n`;
+      });
 
       text += "ACTIVITIES\n";
+      text += `Warm-up Hook: ${content.activities.warmUpHook}\n\n`;
       text += "Interactive Activities:\n";
       content.activities.interactive.forEach((activity) => {
-        text += `• ${activity}\n`;
+        text += `• ${activity.name} (${activity.time}): ${activity.expectedOutcome}\n`;
       });
+      text += "\nPractice Problems:\n";
+      content.activities.practiceProblems.forEach((problem, i) => {
+        text += `${i + 1}. ${problem.problem} (Answer: ${problem.answer})\n`;
+      });
+      text += `\nGroup Work: ${content.activities.groupWork.task}\n`;
+      text += `Success Criteria: ${content.activities.groupWork.successCriteria}\n\n`;
 
-      if (
-        content.activities.practiceProblems &&
-        content.activities.practiceProblems.length > 0
-      ) {
-        text += "\nPractice Problems:\n";
-        content.activities.practiceProblems.forEach((problem, i) => {
-          text += `${i + 1}. ${problem}\n`;
-        });
-      }
-
-      if (content.activities.groupWork) {
-        text += `\nGroup Work: ${content.activities.groupWork}\n`;
-      }
-
-      if (
-        content.activities.experiments &&
-        content.activities.experiments.length > 0
-      ) {
-        text += "\nExperiments:\n";
-        content.activities.experiments.forEach((experiment) => {
-          text += `• ${experiment}\n`;
-        });
-      }
-      text += "\n";
-
-      text += "ASSESSMENT\n";
-      text += "Quick Questions:\n";
-      content.assessment.quickQuestions.forEach((question) => {
+      text += "WRAP-UP\n";
+      text += "Summary:\n";
+      content.wrapUp.summary.forEach((point) => {
+        text += `• ${point}\n`;
+      });
+      text += "\nEngagement Questions:\n";
+      content.wrapUp.engagementQuestions.forEach((question) => {
         text += `• ${question}\n`;
       });
-      text += `\nExit Ticket: ${content.assessment.exitTicket}\n`;
-      text += `Homework: ${content.assessment.homework}\n\n`;
+      text += `\nClosure Activity: ${content.wrapUp.closureActivity}\n\n`;
+
+      text += "QUICK ASSESSMENT\n";
+      content.quickAssessment.fiveQandA.forEach((qa, i) => {
+        text += `${i + 1}. Q: ${qa.q}\n   A: ${qa.a}\n`;
+      });
+      text += `\nFormat Hints: ${content.quickAssessment.formatHints}\n\n`;
+
+      text += "ASSESSMENT\n";
+      text += `Exit Ticket: ${content.assessment.exitTicket}\n`;
+      text += `Homework: ${content.assessment.homework}\n`;
+      text += `Marking Hints: ${content.assessment.rubricOrMarkingHints}\n\n`;
 
       text += "RESOURCES\n";
-      text += "Materials Needed:\n";
+      text += "Materials:\n";
       content.resources.materials.forEach((material) => {
         text += `• ${material}\n`;
       });
@@ -289,29 +347,15 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
       content.resources.references.forEach((reference) => {
         text += `• ${reference}\n`;
       });
+      text += "\nAdditional Reading/Media:\n";
+      content.resources.additionalReadingOrMedia.forEach((reading) => {
+        text += `• ${reading}\n`;
+      });
 
-      if (
-        content.resources.additionalReading &&
-        content.resources.additionalReading.length > 0
-      ) {
-        text += "\nAdditional Reading:\n";
-        content.resources.additionalReading.forEach((reading) => {
-          text += `• ${reading}\n`;
-        });
-      }
-
-      if (content.differentiation) {
-        text += "\nDIFFERENTIATION STRATEGIES\n";
-        if (content.differentiation.strugglingLearners) {
-          text += `For Struggling Learners: ${content.differentiation.strugglingLearners}\n`;
-        }
-        if (content.differentiation.advancedStudents) {
-          text += `For Advanced Students: ${content.differentiation.advancedStudents}\n`;
-        }
-        if (content.differentiation.multipleStyles) {
-          text += `Multiple Learning Styles: ${content.differentiation.multipleStyles}\n`;
-        }
-      }
+      text += "\nDIFFERENTIATION STRATEGIES\n";
+      text += `For Struggling Learners: ${content.differentiation.strugglingLearners}\n`;
+      text += `For Advanced Students: ${content.differentiation.advancedStudents}\n`;
+      text += `Multiple Learning Styles: ${content.differentiation.multipleLearningStyles}\n`;
 
       return text;
     } else if (htmlContent) {
@@ -355,118 +399,187 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
       htmlContent = `
 <div class="header">
     <h1>${content.sessionTitle}</h1>
+    <p><strong>Subject:</strong> ${content.subject}</p>
+    <p><strong>Class:</strong> ${content.class}</p>
     <p><strong>Duration:</strong> ${content.duration}</p>
+    <p><strong>Summary:</strong> ${content.summary}</p>
 </div>
 
 <div class="section">
-    <h2>Introduction</h2>
-    <h3>Hook</h3>
-    <p>${content.introduction.hook}</p>
-    <h3>Overview</h3>
-    <p>${content.introduction.overview}</p>
-    ${
-      content.introduction.previousConnection
-        ? `<h3>Previous Connection</h3><p>${content.introduction.previousConnection}</p>`
-        : ""
-    }
-</div>
-
-<div class="section">
-    <h2>Main Content</h2>
-    <h3>Key Concepts</h3>
-    <ul>
-        ${content.mainContent.keyConcepts
-          .map((concept) => `<li>${concept}</li>`)
-          .join("")}
-    </ul>
-    <h3>Teaching Sequence</h3>
+    <h2>Objectives</h2>
     <ol>
-        ${content.mainContent.teachingSequence
-          .map((step) => `<li>${step}</li>`)
+        ${content.objectives
+          .map((objective) => `<li>${objective}</li>`)
           .join("")}
     </ol>
-    ${
-      content.mainContent.formulas && content.mainContent.formulas.length > 0
-        ? `
-    <h3>Key Formulas</h3>
-    ${content.mainContent.formulas
-      .map((formula) => `<div class="formula">${formula}</div>`)
-      .join("")}
-    `
-        : ""
-    }
-    ${
-      content.mainContent.examples && content.mainContent.examples.length > 0
-        ? `
-    <h3>Examples</h3>
+</div>
+
+<div class="section">
+    <h2>Teaching Script</h2>
+    <h3>Overview</h3>
+    <p>${content.teachingScript.overview}</p>
+    <h3>Step-by-Step Teaching</h3>
+    <ol>
+        ${content.teachingScript.stepByStep
+          .map(
+            (step) => `
+            <li>
+                <strong>${step.time}:</strong> ${step.teacherLines}<br>
+                <em>Student Activity:</em> ${step.studentActivity}
+            </li>
+          `
+          )
+          .join("")}
+    </ol>
+    <h3>Transitions</h3>
+    <p>${content.teachingScript.transitions}</p>
+</div>
+
+<div class="section">
+    <h2>Board Work Plan</h2>
+    <h3>Definitions</h3>
     <ul>
-        ${content.mainContent.examples
-          .map((example) => `<li>${example}</li>`)
+        ${content.boardWorkPlan.definitions
+          .map((definition) => `<li>${definition}</li>`)
           .join("")}
     </ul>
-    `
-        : ""
-    }
+    <h3>Laws/Rules</h3>
+    <ul>
+        ${content.boardWorkPlan.lawsOrRules
+          .map(
+            (rule) =>
+              `<li><strong>${rule.name}:</strong> ${rule.statement} (${rule.notation})</li>`
+          )
+          .join("")}
+    </ul>
+    <h3>Diagrams to Draw</h3>
+    <ul>
+        ${content.boardWorkPlan.diagramsToDraw
+          .map(
+            (diagram) =>
+              `<li><strong>${diagram.label}:</strong> ${diagram.instructions}</li>`
+          )
+          .join("")}
+    </ul>
+    <h3>Keywords</h3>
+    <p>${content.boardWorkPlan.keywords.join(", ")}</p>
+</div>
+
+<div class="section">
+    <h2>Detailed Explanations</h2>
+    ${content.detailedExplanations.subtopics
+      .map(
+        (subtopic) => `
+        <h3>${subtopic.title}</h3>
+        <p>${subtopic.explanation}</p>
+        <p><strong>Example:</strong> ${subtopic.example}</p>
+        <p><em>Classroom Tips:</em> ${subtopic.classroomTips}</p>
+        ${
+          subtopic.comparisonTable?.useIfRelevant
+            ? `
+          <table border="1" style="border-collapse: collapse; width: 100%; margin: 10px 0;">
+            <tr>
+              ${subtopic.comparisonTable.headers
+                .map(
+                  (header) =>
+                    `<th style="padding: 8px; background-color: #f0f0f0;">${header}</th>`
+                )
+                .join("")}
+            </tr>
+            ${subtopic.comparisonTable.rows
+              .map(
+                (row) =>
+                  `<tr>${row
+                    .map((cell) => `<td style="padding: 8px;">${cell}</td>`)
+                    .join("")}</tr>`
+              )
+              .join("")}
+          </table>
+        `
+            : ""
+        }
+      `
+      )
+      .join("")}
 </div>
 
 <div class="section">
     <h2>Activities</h2>
+    <h3>Warm-up Hook</h3>
+    <p>${content.activities.warmUpHook}</p>
     <h3>Interactive Activities</h3>
     <ul>
         ${content.activities.interactive
-          .map((activity) => `<li>${activity}</li>`)
+          .map(
+            (activity) => `
+            <li>
+                <strong>${activity.name}</strong> (${activity.time}): ${
+              activity.expectedOutcome
+            }<br>
+                <em>Steps:</em> ${activity.steps.join(", ")}
+            </li>
+          `
+          )
           .join("")}
     </ul>
-    ${
-      content.activities.practiceProblems &&
-      content.activities.practiceProblems.length > 0
-        ? `
     <h3>Practice Problems</h3>
     <ol>
         ${content.activities.practiceProblems
-          .map((problem) => `<li>${problem}</li>`)
+          .map(
+            (problem) =>
+              `<li>${problem.problem} <em>(Answer: ${problem.answer})</em></li>`
+          )
           .join("")}
     </ol>
-    `
-        : ""
-    }
-    ${
-      content.activities.groupWork
-        ? `<h3>Group Work</h3><p>${content.activities.groupWork}</p>`
-        : ""
-    }
-    ${
-      content.activities.experiments &&
-      content.activities.experiments.length > 0
-        ? `
-    <h3>Experiments</h3>
+    <h3>Group Work</h3>
+    <p><strong>Task:</strong> ${content.activities.groupWork.task}</p>
+    <p><strong>Success Criteria:</strong> ${
+      content.activities.groupWork.successCriteria
+    }</p>
+</div>
+
+<div class="section">
+    <h2>Wrap-up</h2>
+    <h3>Summary</h3>
     <ul>
-        ${content.activities.experiments
-          .map((experiment) => `<li>${experiment}</li>`)
+        ${content.wrapUp.summary.map((point) => `<li>${point}</li>`).join("")}
+    </ul>
+    <h3>Engagement Questions</h3>
+    <ul>
+        ${content.wrapUp.engagementQuestions
+          .map((question) => `<li>${question}</li>`)
           .join("")}
     </ul>
-    `
-        : ""
-    }
+    <h3>Closure Activity</h3>
+    <p>${content.wrapUp.closureActivity}</p>
+</div>
+
+<div class="section">
+    <h2>Quick Assessment</h2>
+    <ol>
+        ${content.quickAssessment.fiveQandA
+          .map(
+            (qa) =>
+              `<li><strong>Q:</strong> ${qa.q}<br><strong>A:</strong> ${qa.a}</li>`
+          )
+          .join("")}
+    </ol>
+    <p><em>${content.quickAssessment.formatHints}</em></p>
 </div>
 
 <div class="section">
     <h2>Assessment</h2>
-    <h3>Quick Questions</h3>
-    <ul>
-        ${content.assessment.quickQuestions
-          .map((question) => `<li>${question}</li>`)
-          .join("")}
-    </ul>
     <h3>Exit Ticket</h3>
     <p>${content.assessment.exitTicket}</p>
     <h3>Homework</h3>
     <p>${content.assessment.homework}</p>
+    <h3>Marking Hints</h3>
+    <p>${content.assessment.rubricOrMarkingHints}</p>
 </div>
 
 <div class="section">
     <h2>Resources</h2>
-    <h3>Materials Needed</h3>
+    <h3>Materials</h3>
     <ul>
         ${content.resources.materials
           .map((material) => `<li>${material}</li>`)
@@ -478,45 +591,23 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
           .map((reference) => `<li>${reference}</li>`)
           .join("")}
     </ul>
-    ${
-      content.resources.additionalReading &&
-      content.resources.additionalReading.length > 0
-        ? `
-    <h3>Additional Reading</h3>
+    <h3>Additional Reading/Media</h3>
     <ul>
-        ${content.resources.additionalReading
+        ${content.resources.additionalReadingOrMedia
           .map((reading) => `<li>${reading}</li>`)
           .join("")}
     </ul>
-    `
-        : ""
-    }
 </div>
 
-${
-  content.differentiation
-    ? `
 <div class="section">
     <h2>Differentiation Strategies</h2>
-    ${
-      content.differentiation.strugglingLearners
-        ? `<h3>For Struggling Learners</h3><p>${content.differentiation.strugglingLearners}</p>`
-        : ""
-    }
-    ${
-      content.differentiation.advancedStudents
-        ? `<h3>For Advanced Students</h3><p>${content.differentiation.advancedStudents}</p>`
-        : ""
-    }
-    ${
-      content.differentiation.multipleStyles
-        ? `<h3>Multiple Learning Styles</h3><p>${content.differentiation.multipleStyles}</p>`
-        : ""
-    }
+    <h3>For Struggling Learners</h3>
+    <p>${content.differentiation.strugglingLearners}</p>
+    <h3>For Advanced Students</h3>
+    <p>${content.differentiation.advancedStudents}</p>
+    <h3>Multiple Learning Styles</h3>
+    <p>${content.differentiation.multipleLearningStyles}</p>
 </div>
-`
-    : ""
-}
 
 <div class="note">
     <strong>Note:</strong> This AI-generated lesson plan provides a structured framework for teaching. 
@@ -545,31 +636,50 @@ ${
           >
             {content.sessionTitle}
           </Typography>
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+          <Typography
+            variant="body2"
+            sx={{ fontWeight: 600, marginBottom: 0.5 }}
+          >
+            Subject: {content.subject} | Class: {content.class}
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 600, marginBottom: 1 }}>
             Duration: {content.duration}
+          </Typography>
+          <Typography variant="body2" sx={{ fontStyle: "italic" }}>
+            {content.summary}
           </Typography>
         </Paper>
 
-        {/* Introduction */}
+        {/* Objectives */}
         <Paper sx={{ padding: 2, border: "1px solid #e0e0e0" }}>
           <Typography
             variant="h6"
             sx={{ color: "primary.main", marginBottom: 2 }}
           >
-            Introduction
+            Learning Objectives
           </Typography>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Hook:
-            </Typography>
-            <Typography variant="body2" sx={{ fontStyle: "italic" }}>
-              {content.introduction.hook}
-            </Typography>
+          <Box component="ol" sx={{ margin: 0, paddingLeft: 2.5 }}>
+            {content.objectives.map((objective, index) => (
+              <Typography
+                key={index}
+                component="li"
+                variant="body2"
+                sx={{ marginBottom: 0.5 }}
+              >
+                {objective}
+              </Typography>
+            ))}
           </Box>
+        </Paper>
+
+        {/* Teaching Script */}
+        <Paper sx={{ padding: 2, border: "1px solid #e0e0e0" }}>
+          <Typography
+            variant="h6"
+            sx={{ color: "primary.main", marginBottom: 2 }}
+          >
+            Teaching Script
+          </Typography>
 
           <Box sx={{ marginBottom: 2 }}>
             <Typography
@@ -578,33 +688,67 @@ ${
             >
               Overview:
             </Typography>
-            <Typography variant="body2">
-              {content.introduction.overview}
+            <Typography variant="body2" sx={{ fontStyle: "italic" }}>
+              {content.teachingScript.overview}
             </Typography>
           </Box>
 
-          {content.introduction.previousConnection && (
-            <Box>
-              <Typography
-                variant="subtitle2"
-                sx={{ fontWeight: 600, marginBottom: 1 }}
+          <Box sx={{ marginBottom: 2 }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 600, marginBottom: 1 }}
+            >
+              Step-by-Step Teaching:
+            </Typography>
+            {content.teachingScript.stepByStep.map((step, index) => (
+              <Box
+                key={index}
+                sx={{
+                  marginBottom: 1.5,
+                  padding: 1,
+                  backgroundColor: "#f9f9f9",
+                  borderRadius: 1,
+                }}
               >
-                Previous Connection:
-              </Typography>
-              <Typography variant="body2">
-                {content.introduction.previousConnection}
-              </Typography>
-            </Box>
-          )}
+                <Typography
+                  variant="body2"
+                  sx={{ fontWeight: 600, color: "primary.main" }}
+                >
+                  {step.time}
+                </Typography>
+                <Typography variant="body2" sx={{ marginBottom: 0.5 }}>
+                  <strong>Teacher:</strong> {step.teacherLines}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{ fontStyle: "italic", color: "#666" }}
+                >
+                  <strong>Student Activity:</strong> {step.studentActivity}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+
+          <Box>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 600, marginBottom: 1 }}
+            >
+              Transitions:
+            </Typography>
+            <Typography variant="body2">
+              {content.teachingScript.transitions}
+            </Typography>
+          </Box>
         </Paper>
 
-        {/* Main Content */}
+        {/* Board Work Plan */}
         <Paper sx={{ padding: 2, border: "1px solid #e0e0e0" }}>
           <Typography
             variant="h6"
             sx={{ color: "primary.main", marginBottom: 2 }}
           >
-            Main Content
+            Board Work Plan
           </Typography>
 
           <Box sx={{ marginBottom: 2 }}>
@@ -612,17 +756,17 @@ ${
               variant="subtitle2"
               sx={{ fontWeight: 600, marginBottom: 1 }}
             >
-              Key Concepts:
+              Definitions:
             </Typography>
             <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
-              {content.mainContent.keyConcepts.map((concept, index) => (
+              {content.boardWorkPlan.definitions.map((definition, index) => (
                 <Typography
                   key={index}
                   component="li"
                   variant="body2"
                   sx={{ marginBottom: 0.5 }}
                 >
-                  {concept}
+                  {definition}
                 </Typography>
               ))}
             </Box>
@@ -633,75 +777,136 @@ ${
               variant="subtitle2"
               sx={{ fontWeight: 600, marginBottom: 1 }}
             >
-              Teaching Sequence:
+              Laws/Rules:
             </Typography>
-            <Box component="ol" sx={{ margin: 0, paddingLeft: 2.5 }}>
-              {content.mainContent.teachingSequence.map((step, index) => (
+            <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
+              {content.boardWorkPlan.lawsOrRules.map((rule, index) => (
                 <Typography
                   key={index}
                   component="li"
                   variant="body2"
                   sx={{ marginBottom: 0.5 }}
                 >
-                  {step}
+                  <strong>{rule.name}:</strong> {rule.statement} (
+                  {rule.notation})
                 </Typography>
               ))}
             </Box>
           </Box>
 
-          {content.mainContent.formulas &&
-            content.mainContent.formulas.length > 0 && (
-              <Box sx={{ marginBottom: 2 }}>
+          <Box sx={{ marginBottom: 2 }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 600, marginBottom: 1 }}
+            >
+              Diagrams to Draw:
+            </Typography>
+            <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
+              {content.boardWorkPlan.diagramsToDraw.map((diagram, index) => (
                 <Typography
-                  variant="subtitle2"
-                  sx={{ fontWeight: 600, marginBottom: 1 }}
+                  key={index}
+                  component="li"
+                  variant="body2"
+                  sx={{ marginBottom: 0.5 }}
                 >
-                  Key Formulas:
+                  <strong>{diagram.label}:</strong> {diagram.instructions}
                 </Typography>
-                <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
-                  {content.mainContent.formulas.map((formula, index) => (
-                    <Typography
-                      key={index}
-                      component="li"
-                      variant="body2"
-                      sx={{
-                        marginBottom: 0.5,
-                        fontFamily: "monospace",
-                        backgroundColor: "#f5f5f5",
-                        padding: 0.5,
-                        borderRadius: 1,
-                      }}
-                    >
-                      {formula}
-                    </Typography>
-                  ))}
-                </Box>
-              </Box>
-            )}
+              ))}
+            </Box>
+          </Box>
 
-          {content.mainContent.examples &&
-            content.mainContent.examples.length > 0 && (
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  sx={{ fontWeight: 600, marginBottom: 1 }}
-                >
-                  Examples:
-                </Typography>
-                <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
-                  {content.mainContent.examples.map((example, index) => (
-                    <Typography
-                      key={index}
-                      component="li"
-                      variant="body2"
-                      sx={{ marginBottom: 0.5 }}
-                    >
-                      {example}
-                    </Typography>
-                  ))}
+          <Box>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 600, marginBottom: 1 }}
+            >
+              Keywords:
+            </Typography>
+            <Typography variant="body2">
+              {content.boardWorkPlan.keywords.join(", ")}
+            </Typography>
+          </Box>
+        </Paper>
+
+        {/* Detailed Explanations */}
+        <Paper sx={{ padding: 2, border: "1px solid #e0e0e0" }}>
+          <Typography
+            variant="h6"
+            sx={{ color: "primary.main", marginBottom: 2 }}
+          >
+            Detailed Explanations
+          </Typography>
+          {content.detailedExplanations.subtopics.map((subtopic, index) => (
+            <Box key={index} sx={{ marginBottom: 3 }}>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: "primary.main",
+                  marginBottom: 1,
+                  fontSize: "1.1rem",
+                }}
+              >
+                {subtopic.title}
+              </Typography>
+              <Typography variant="body2" sx={{ marginBottom: 1 }}>
+                {subtopic.explanation}
+              </Typography>
+              <Typography variant="body2" sx={{ marginBottom: 1 }}>
+                <strong>Example:</strong> {subtopic.example}
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ fontStyle: "italic", color: "#666", marginBottom: 1 }}
+              >
+                <strong>Classroom Tips:</strong> {subtopic.classroomTips}
+              </Typography>
+              {subtopic.comparisonTable?.useIfRelevant && (
+                <Box sx={{ marginTop: 1 }}>
+                  <table
+                    style={{
+                      width: "100%",
+                      borderCollapse: "collapse",
+                      border: "1px solid #ddd",
+                    }}
+                  >
+                    <thead>
+                      <tr>
+                        {subtopic.comparisonTable.headers.map((header, idx) => (
+                          <th
+                            key={idx}
+                            style={{
+                              padding: "8px",
+                              backgroundColor: "#f0f0f0",
+                              border: "1px solid #ddd",
+                            }}
+                          >
+                            {header}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {subtopic.comparisonTable.rows.map((row, rowIdx) => (
+                        <tr key={rowIdx}>
+                          {row.map((cell, cellIdx) => (
+                            <td
+                              key={cellIdx}
+                              style={{
+                                padding: "8px",
+                                border: "1px solid #ddd",
+                              }}
+                            >
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </Box>
-              </Box>
-            )}
+              )}
+            </Box>
+          ))}
         </Paper>
 
         {/* Activities */}
@@ -718,83 +923,175 @@ ${
               variant="subtitle2"
               sx={{ fontWeight: 600, marginBottom: 1 }}
             >
+              Warm-up Hook:
+            </Typography>
+            <Typography variant="body2" sx={{ fontStyle: "italic" }}>
+              {content.activities.warmUpHook}
+            </Typography>
+          </Box>
+
+          <Box sx={{ marginBottom: 2 }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 600, marginBottom: 1 }}
+            >
               Interactive Activities:
             </Typography>
-            <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
-              {content.activities.interactive.map((activity, index) => (
+            {content.activities.interactive.map((activity, index) => (
+              <Box
+                key={index}
+                sx={{
+                  marginBottom: 1.5,
+                  padding: 1,
+                  backgroundColor: "#f9f9f9",
+                  borderRadius: 1,
+                }}
+              >
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {activity.name} ({activity.time})
+                </Typography>
+                <Typography variant="body2" sx={{ marginBottom: 0.5 }}>
+                  {activity.expectedOutcome}
+                </Typography>
+                <Typography variant="body2" sx={{ fontSize: "0.9rem" }}>
+                  <strong>Steps:</strong> {activity.steps.join(", ")}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+
+          <Box sx={{ marginBottom: 2 }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 600, marginBottom: 1 }}
+            >
+              Practice Problems:
+            </Typography>
+            <Box component="ol" sx={{ margin: 0, paddingLeft: 2.5 }}>
+              {content.activities.practiceProblems.map((problem, index) => (
                 <Typography
                   key={index}
                   component="li"
                   variant="body2"
                   sx={{ marginBottom: 0.5 }}
                 >
-                  {activity}
+                  {problem.problem} <em>(Answer: {problem.answer})</em>
                 </Typography>
               ))}
             </Box>
           </Box>
 
-          {content.activities.practiceProblems &&
-            content.activities.practiceProblems.length > 0 && (
-              <Box sx={{ marginBottom: 2 }}>
-                <Typography
-                  variant="subtitle2"
-                  sx={{ fontWeight: 600, marginBottom: 1 }}
-                >
-                  Practice Problems:
-                </Typography>
-                <Box component="ol" sx={{ margin: 0, paddingLeft: 2.5 }}>
-                  {content.activities.practiceProblems.map((problem, index) => (
-                    <Typography
-                      key={index}
-                      component="li"
-                      variant="body2"
-                      sx={{ marginBottom: 0.5 }}
-                    >
-                      {problem}
-                    </Typography>
-                  ))}
-                </Box>
-              </Box>
-            )}
+          <Box>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 600, marginBottom: 1 }}
+            >
+              Group Work:
+            </Typography>
+            <Typography variant="body2" sx={{ marginBottom: 0.5 }}>
+              <strong>Task:</strong> {content.activities.groupWork.task}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Success Criteria:</strong>{" "}
+              {content.activities.groupWork.successCriteria}
+            </Typography>
+          </Box>
+        </Paper>
 
-          {content.activities.groupWork && (
-            <Box sx={{ marginBottom: 2 }}>
-              <Typography
-                variant="subtitle2"
-                sx={{ fontWeight: 600, marginBottom: 1 }}
-              >
-                Group Work:
-              </Typography>
-              <Typography variant="body2">
-                {content.activities.groupWork}
-              </Typography>
+        {/* Wrap-up */}
+        <Paper sx={{ padding: 2, border: "1px solid #e0e0e0" }}>
+          <Typography
+            variant="h6"
+            sx={{ color: "primary.main", marginBottom: 2 }}
+          >
+            Wrap-up
+          </Typography>
+
+          <Box sx={{ marginBottom: 2 }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 600, marginBottom: 1 }}
+            >
+              Summary:
+            </Typography>
+            <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
+              {content.wrapUp.summary.map((point, index) => (
+                <Typography
+                  key={index}
+                  component="li"
+                  variant="body2"
+                  sx={{ marginBottom: 0.5 }}
+                >
+                  {point}
+                </Typography>
+              ))}
             </Box>
-          )}
+          </Box>
 
-          {content.activities.experiments &&
-            content.activities.experiments.length > 0 && (
-              <Box>
+          <Box sx={{ marginBottom: 2 }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 600, marginBottom: 1 }}
+            >
+              Engagement Questions:
+            </Typography>
+            <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
+              {content.wrapUp.engagementQuestions.map((question, index) => (
                 <Typography
-                  variant="subtitle2"
-                  sx={{ fontWeight: 600, marginBottom: 1 }}
+                  key={index}
+                  component="li"
+                  variant="body2"
+                  sx={{ marginBottom: 0.5 }}
                 >
-                  Experiments:
+                  {question}
                 </Typography>
-                <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
-                  {content.activities.experiments.map((experiment, index) => (
-                    <Typography
-                      key={index}
-                      component="li"
-                      variant="body2"
-                      sx={{ marginBottom: 0.5 }}
-                    >
-                      {experiment}
-                    </Typography>
-                  ))}
+              ))}
+            </Box>
+          </Box>
+
+          <Box>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 600, marginBottom: 1 }}
+            >
+              Closure Activity:
+            </Typography>
+            <Typography variant="body2">
+              {content.wrapUp.closureActivity}
+            </Typography>
+          </Box>
+        </Paper>
+
+        {/* Quick Assessment */}
+        <Paper sx={{ padding: 2, border: "1px solid #e0e0e0" }}>
+          <Typography
+            variant="h6"
+            sx={{ color: "primary.main", marginBottom: 2 }}
+          >
+            Quick Assessment
+          </Typography>
+
+          <Box sx={{ marginBottom: 2 }}>
+            <Box component="ol" sx={{ margin: 0, paddingLeft: 2.5 }}>
+              {content.quickAssessment.fiveQandA.map((qa, index) => (
+                <Box key={index} component="li" sx={{ marginBottom: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    Q: {qa.q}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontStyle: "italic", color: "#666" }}
+                  >
+                    A: {qa.a}
+                  </Typography>
                 </Box>
-              </Box>
-            )}
+              ))}
+            </Box>
+          </Box>
+
+          <Typography variant="body2" sx={{ fontStyle: "italic" }}>
+            {content.quickAssessment.formatHints}
+          </Typography>
         </Paper>
 
         {/* Assessment */}
@@ -811,27 +1108,6 @@ ${
               variant="subtitle2"
               sx={{ fontWeight: 600, marginBottom: 1 }}
             >
-              Quick Questions:
-            </Typography>
-            <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
-              {content.assessment.quickQuestions.map((question, index) => (
-                <Typography
-                  key={index}
-                  component="li"
-                  variant="body2"
-                  sx={{ marginBottom: 0.5 }}
-                >
-                  {question}
-                </Typography>
-              ))}
-            </Box>
-          </Box>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
               Exit Ticket:
             </Typography>
             <Typography variant="body2">
@@ -839,7 +1115,7 @@ ${
             </Typography>
           </Box>
 
-          <Box>
+          <Box sx={{ marginBottom: 2 }}>
             <Typography
               variant="subtitle2"
               sx={{ fontWeight: 600, marginBottom: 1 }}
@@ -848,6 +1124,18 @@ ${
             </Typography>
             <Typography variant="body2">
               {content.assessment.homework}
+            </Typography>
+          </Box>
+
+          <Box>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 600, marginBottom: 1 }}
+            >
+              Marking Hints:
+            </Typography>
+            <Typography variant="body2">
+              {content.assessment.rubricOrMarkingHints}
             </Typography>
           </Box>
         </Paper>
@@ -866,7 +1154,7 @@ ${
               variant="subtitle2"
               sx={{ fontWeight: 600, marginBottom: 1 }}
             >
-              Materials Needed:
+              Materials:
             </Typography>
             <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
               {content.resources.materials.map((material, index) => (
@@ -903,84 +1191,75 @@ ${
             </Box>
           </Box>
 
-          {content.resources.additionalReading &&
-            content.resources.additionalReading.length > 0 && (
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  sx={{ fontWeight: 600, marginBottom: 1 }}
-                >
-                  Additional Reading:
-                </Typography>
-                <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
-                  {content.resources.additionalReading.map((reading, index) => (
-                    <Typography
-                      key={index}
-                      component="li"
-                      variant="body2"
-                      sx={{ marginBottom: 0.5 }}
-                    >
-                      {reading}
-                    </Typography>
-                  ))}
-                </Box>
-              </Box>
-            )}
+          <Box>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 600, marginBottom: 1 }}
+            >
+              Additional Reading/Media:
+            </Typography>
+            <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
+              {content.resources.additionalReadingOrMedia.map(
+                (reading, index) => (
+                  <Typography
+                    key={index}
+                    component="li"
+                    variant="body2"
+                    sx={{ marginBottom: 0.5 }}
+                  >
+                    {reading}
+                  </Typography>
+                )
+              )}
+            </Box>
+          </Box>
         </Paper>
 
         {/* Differentiation */}
-        {content.differentiation && (
-          <Paper sx={{ padding: 2, border: "1px solid #e0e0e0" }}>
+        <Paper sx={{ padding: 2, border: "1px solid #e0e0e0" }}>
+          <Typography
+            variant="h6"
+            sx={{ color: "primary.main", marginBottom: 2 }}
+          >
+            Differentiation Strategies
+          </Typography>
+
+          <Box sx={{ marginBottom: 2 }}>
             <Typography
-              variant="h6"
-              sx={{ color: "primary.main", marginBottom: 2 }}
+              variant="subtitle2"
+              sx={{ fontWeight: 600, marginBottom: 1 }}
             >
-              Differentiation Strategies
+              For Struggling Learners:
             </Typography>
+            <Typography variant="body2">
+              {content.differentiation.strugglingLearners}
+            </Typography>
+          </Box>
 
-            {content.differentiation.strugglingLearners && (
-              <Box sx={{ marginBottom: 2 }}>
-                <Typography
-                  variant="subtitle2"
-                  sx={{ fontWeight: 600, marginBottom: 1 }}
-                >
-                  For Struggling Learners:
-                </Typography>
-                <Typography variant="body2">
-                  {content.differentiation.strugglingLearners}
-                </Typography>
-              </Box>
-            )}
+          <Box sx={{ marginBottom: 2 }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 600, marginBottom: 1 }}
+            >
+              For Advanced Students:
+            </Typography>
+            <Typography variant="body2">
+              {content.differentiation.advancedStudents}
+            </Typography>
+          </Box>
 
-            {content.differentiation.advancedStudents && (
-              <Box sx={{ marginBottom: 2 }}>
-                <Typography
-                  variant="subtitle2"
-                  sx={{ fontWeight: 600, marginBottom: 1 }}
-                >
-                  For Advanced Students:
-                </Typography>
-                <Typography variant="body2">
-                  {content.differentiation.advancedStudents}
-                </Typography>
-              </Box>
-            )}
-
-            {content.differentiation.multipleStyles && (
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  sx={{ fontWeight: 600, marginBottom: 1 }}
-                >
-                  Multiple Learning Styles:
-                </Typography>
-                <Typography variant="body2">
-                  {content.differentiation.multipleStyles}
-                </Typography>
-              </Box>
-            )}
-          </Paper>
-        )}
+          <Box>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 600, marginBottom: 1 }}
+            >
+              Multiple Learning Styles:
+            </Typography>
+            <Typography variant="body2">
+              {content.differentiation.multipleLearningStyles}
+            </Typography>
+          </Box>
+        </Paper>
       </Box>
     );
   };
