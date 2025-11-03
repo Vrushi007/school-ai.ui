@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `SessionPlanRenderer` component is a utility module that handles the HTML generation for session plans in the LearnAI Educational Platform.
+The `SessionPlanRenderer` component is a utility module that handles the HTML generation for session plans in the VYON Educational Platform.
 
 ## Location
 
