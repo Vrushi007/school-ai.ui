@@ -22,7 +22,7 @@ function App() {
           background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         }}
       >
-        <Link to="/school-ai.ui" style={{ textDecoration: "none" }}>
+        <Link to="" style={{ textDecoration: "none" }}>
           <Box
             sx={{
               display: "flex",
@@ -60,8 +60,6 @@ function App() {
 
       {/* Routes */}
       <Routes>
-        <Route path="/" element={<Navigate to="/school-ai.ui" replace />} />
-        <Route path="/school-ai.ui" element={<Home />} />
         <Route path={ROUTES.HOME} element={<Home />} />
         <Route path={ROUTES.TEACHER_DASHBOARD} element={<Teacher />} />
         <Route path={ROUTES.STUDENT_DASHBOARD} element={<Student />} />
