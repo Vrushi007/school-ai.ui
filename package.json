@@ -35,7 +35,6 @@
     "predeploy": "npm run build:production",
     "deploy": "gh-pages -d build"
   },
-  "homepage": "https://Vrushi007.github.io/school-ai.ui",
   "eslintConfig": {
     "extends": [
       "react-app",
