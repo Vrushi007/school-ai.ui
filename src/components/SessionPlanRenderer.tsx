@@ -30,6 +30,7 @@ import {
   SessionDetailContent,
   DetailModalState,
 } from "../interfaces";
+import { parseDetailContent } from "../services/teacherServices/helper";
 
 const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
   sessionPlans,
@@ -57,15 +58,16 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
 
     // Check if we already have cached detailed content
     if (session.detailContent) {
-      try {
-        // Try to parse as JSON first (new format)
-        const parsedContent = JSON.parse(session.detailContent);
+      // Try to parse the cached content using our robust parser
+      const parsedContent = parseDetailContent(session.detailContent);
+
+      if (parsedContent) {
         setModalState((prev) => ({
           ...prev,
           content: parsedContent,
           isLoading: false,
         }));
-      } catch {
+      } else {
         // If parsing fails, treat as HTML (fallback format)
         setModalState((prev) => ({
           ...prev,
@@ -86,23 +88,32 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
         sessionPlan: session,
       });
 
-      // Cache the content in the session object
-      session.detailContent = detailContent;
+      // Cache the raw content in the session object
+      // Convert to string for caching if it's an object
+      session.detailContent =
+        typeof detailContent === "object"
+          ? JSON.stringify(detailContent)
+          : detailContent;
 
-      try {
-        // Try to parse as JSON first (new format)
-        const parsedContent = JSON.parse(detailContent);
+      // Try to parse the content using our robust parser
+      const parsedContent = parseDetailContent(detailContent);
+
+      if (parsedContent) {
         setModalState((prev) => ({
           ...prev,
           content: parsedContent,
           isLoading: false,
         }));
-      } catch {
+      } else {
         // If parsing fails, treat as HTML (fallback format)
+        const fallbackContent =
+          typeof detailContent === "string"
+            ? detailContent
+            : JSON.stringify(detailContent);
         setModalState((prev) => ({
           ...prev,
           content: null,
-          htmlContent: detailContent,
+          htmlContent: fallbackContent,
           isLoading: false,
         }));
       }

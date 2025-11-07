@@ -1,3 +1,4 @@
+import { SessionDetailContent } from "../../interfaces";
 import { SessionPlan } from "../../types";
 import { Question } from "./types";
 
@@ -48,5 +49,48 @@ export const mapQuestionType = (questionType: string): Question["type"] => {
       return "long-answer"; // Map application to long-answer
     default:
       return "multiple-choice";
+  }
+};
+
+
+// Helper function to parse detail content that can come in multiple formats
+export const parseDetailContent = (
+  rawContent: any
+): SessionDetailContent | null => {
+  try {
+    // Case 1: Already a parsed JSON object
+    if (typeof rawContent === "object" && rawContent !== null) {
+      return rawContent as SessionDetailContent;
+    }
+
+    // Case 2 & 3: String content - could be stringified JSON or markdown wrapped
+    if (typeof rawContent === "string") {
+      const content = rawContent.trim();
+
+      // Case 3: Check if the content is wrapped in markdown code block
+      const codeBlockRegex = /^```(?:json)?\s*([\s\S]*?)\s*```$/;
+      const codeBlockMatch = content.match(codeBlockRegex);
+
+      let jsonString: string;
+      if (codeBlockMatch) {
+        // Extract JSON from markdown code block
+        jsonString = codeBlockMatch[1].trim();
+      } else {
+        // Case 2: Assume it's direct stringified JSON
+        jsonString = content;
+      }
+
+      // Parse the JSON string
+      const parsed = JSON.parse(jsonString);
+      return parsed as SessionDetailContent;
+    }
+
+    console.error("Unsupported content type:", typeof rawContent);
+    return null;
+  } catch (error) {
+    console.error("Failed to parse detail content:", error);
+    console.error("Raw content type:", typeof rawContent);
+    console.error("Raw content:", rawContent);
+    return null;
   }
 };
