@@ -82,8 +82,8 @@ export const generateSessionDetail = async (
       requestBody
     );
 
-    // Return the structured session content as JSON string
-    const sessionContent = data.raw_content;
+    // Return the structured session content as JSON/ Stringified JSON
+    const sessionContent = data.content;
     return sessionContent;
   } catch (error) {
     console.error("Error generating session detail:", error);
