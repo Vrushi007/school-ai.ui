@@ -1094,7 +1094,7 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
             </Box>
           </Box>
 
-          <Box>
+          <Box sx={{ marginBottom: 2 }}>
             <Typography
               variant="subtitle2"
               sx={{ fontWeight: 600, marginBottom: 1 }}
@@ -1116,6 +1116,261 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
               )}
             </Box>
           </Box>
+
+          {/* YouTube Videos Section */}
+          {content.resources.youtubeVideos &&
+            content.resources.youtubeVideos.success && (
+              <Box>
+                <Typography
+                  variant="subtitle2"
+                  sx={{ fontWeight: 600, marginBottom: 1 }}
+                >
+                  Recommended YouTube Videos:
+                </Typography>
+                <Box sx={{ overflowX: "auto", marginBottom: 1 }}>
+                  <table
+                    style={{
+                      width: "100%",
+                      borderCollapse: "collapse",
+                      border: "1px solid #ddd",
+                      fontSize: "0.875rem",
+                    }}
+                  >
+                    <thead>
+                      <tr style={{ backgroundColor: "#f5f5f5" }}>
+                        <th
+                          style={{
+                            padding: "12px 8px",
+                            border: "1px solid #ddd",
+                            textAlign: "left",
+                            fontWeight: 600,
+                            width: "60px",
+                          }}
+                        >
+                          Thumbnail
+                        </th>
+                        <th
+                          style={{
+                            padding: "12px 8px",
+                            border: "1px solid #ddd",
+                            textAlign: "left",
+                            fontWeight: 600,
+                            minWidth: "200px",
+                          }}
+                        >
+                          Title
+                        </th>
+                        <th
+                          style={{
+                            padding: "12px 8px",
+                            border: "1px solid #ddd",
+                            textAlign: "left",
+                            fontWeight: 600,
+                            width: "120px",
+                          }}
+                        >
+                          Channel
+                        </th>
+                        <th
+                          style={{
+                            padding: "12px 8px",
+                            border: "1px solid #ddd",
+                            textAlign: "center",
+                            fontWeight: 600,
+                            width: "80px",
+                          }}
+                        >
+                          Duration
+                        </th>
+                        <th
+                          style={{
+                            padding: "12px 8px",
+                            border: "1px solid #ddd",
+                            textAlign: "center",
+                            fontWeight: 600,
+                            width: "80px",
+                          }}
+                        >
+                          Views
+                        </th>
+                        <th
+                          style={{
+                            padding: "12px 8px",
+                            border: "1px solid #ddd",
+                            textAlign: "center",
+                            fontWeight: 600,
+                            width: "80px",
+                          }}
+                        >
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {content.resources.youtubeVideos.data.map(
+                        (video, index) => (
+                          <tr
+                            key={index}
+                            style={{
+                              borderBottom: "1px solid #ddd",
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.backgroundColor =
+                                "#f9f9f9")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.backgroundColor =
+                                "transparent")
+                            }
+                          >
+                            <td
+                              style={{
+                                padding: "8px",
+                                border: "1px solid #ddd",
+                                textAlign: "center",
+                              }}
+                            >
+                              <img
+                                src={video.thumbnailUrl}
+                                alt={video.title}
+                                style={{
+                                  width: "50px",
+                                  height: "38px",
+                                  objectFit: "cover",
+                                  borderRadius: "4px",
+                                }}
+                              />
+                            </td>
+                            <td
+                              style={{
+                                padding: "8px",
+                                border: "1px solid #ddd",
+                                maxWidth: "250px",
+                              }}
+                            >
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontWeight: 500,
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  display: "-webkit-box",
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: "vertical",
+                                  lineHeight: 1.4,
+                                  marginBottom: 0.5,
+                                }}
+                                title={video.title}
+                              >
+                                {video.title}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: "#666",
+                                  fontSize: "0.75rem",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  display: "-webkit-box",
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: "vertical",
+                                }}
+                                title={video.description}
+                              >
+                                {video.description}
+                              </Typography>
+                            </td>
+                            <td
+                              style={{
+                                padding: "8px",
+                                border: "1px solid #ddd",
+                              }}
+                            >
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontSize: "0.8rem",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                }}
+                                title={video.channelTitle}
+                              >
+                                {video.channelTitle}
+                              </Typography>
+                            </td>
+                            <td
+                              style={{
+                                padding: "8px",
+                                border: "1px solid #ddd",
+                                textAlign: "center",
+                              }}
+                            >
+                              <Typography
+                                variant="body2"
+                                sx={{ fontSize: "0.8rem" }}
+                              >
+                                {video.duration}
+                              </Typography>
+                            </td>
+                            <td
+                              style={{
+                                padding: "8px",
+                                border: "1px solid #ddd",
+                                textAlign: "center",
+                              }}
+                            >
+                              <Typography
+                                variant="body2"
+                                sx={{ fontSize: "0.8rem" }}
+                              >
+                                {parseInt(video.viewCount).toLocaleString()}
+                              </Typography>
+                            </td>
+                            <td
+                              style={{
+                                padding: "8px",
+                                border: "1px solid #ddd",
+                                textAlign: "center",
+                              }}
+                            >
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                onClick={() =>
+                                  window.open(video.videoUrl, "_blank")
+                                }
+                                sx={{
+                                  fontSize: "0.7rem",
+                                  padding: "4px 8px",
+                                  minWidth: "auto",
+                                  textTransform: "none",
+                                }}
+                              >
+                                Watch
+                              </Button>
+                            </td>
+                          </tr>
+                        )
+                      )}
+                    </tbody>
+                  </table>
+                </Box>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: "#666",
+                    fontStyle: "italic",
+                    display: "block",
+                    marginTop: 1,
+                  }}
+                >
+                  Found {content.resources.youtubeVideos.totalVideos} videos for
+                  keywords:{" "}
+                  {content.resources.youtubeVideos.keywordsSearched.join(", ")}
+                </Typography>
+              </Box>
+            )}
         </Paper>
 
         {/* Differentiation */}
