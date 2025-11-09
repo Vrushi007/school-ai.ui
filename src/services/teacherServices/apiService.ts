@@ -44,8 +44,7 @@ export const generateSessionPlan = async (
     );
 
     // Transform the response to match our SessionPlan interface and return
-    const sessionPlans = transformSessionPlanResponse(data);
-    return sessionPlans;
+    return (data as any).lessonPlan as SessionPlan[];
   } catch (error) {
     console.error("Error generating session plan:", error);
     // Fallback: Generate mock session plans if API fails
@@ -83,7 +82,7 @@ export const generateSessionDetail = async (
     );
 
     // Return the structured session content as JSON/ Stringified JSON
-    const sessionContent = data.content;
+    const sessionContent = (data as { content: string }).content;
     return sessionContent;
   } catch (error) {
     console.error("Error generating session detail:", error);
@@ -114,20 +113,22 @@ export const generateQuestions = async (
     const data = await makePostRequest("/api/generate-questions", requestBody);
 
     // Transform the response to match our Question interface
-    const questions: Question[] = data.questions.questions.map((q: any) => ({
-      id: q.id.toString(),
-      questionText: q.questionText,
-      questionType: q.questionType,
-      type: mapQuestionType(q.questionType),
-      question: q.questionText, // For backward compatibility
-      options: q.options,
-      correctAnswer: q.correctAnswer,
-      marks: q.marks,
-      difficulty: q.difficultyLevel,
-      difficultyLevel: q.difficultyLevel,
-      chapterReference: q.chapterReference,
-      explanation: q.explanation,
-    }));
+    const questions: Question[] = (data as any).questions.questions.map(
+      (q: any) => ({
+        id: q.id.toString(),
+        questionText: q.questionText,
+        questionType: q.questionType,
+        type: mapQuestionType(q.questionType),
+        question: q.questionText, // For backward compatibility
+        options: q.options,
+        correctAnswer: q.correctAnswer,
+        marks: q.marks,
+        difficulty: q.difficultyLevel,
+        difficultyLevel: q.difficultyLevel,
+        chapterReference: q.chapterReference,
+        explanation: q.explanation,
+      })
+    );
 
     return questions;
   } catch (error) {

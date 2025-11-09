@@ -15,7 +15,7 @@ export const askQuestion = async (
 ): Promise<AnswerResponse> => {
   try {
     const response = await makePostRequest("/api/get-answers", questionData);
-    return response.response;
+    return (response as any).response as AnswerResponse
   } catch (error) {
     console.error("Error asking question:", error);
     throw new Error(
