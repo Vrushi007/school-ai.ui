@@ -256,6 +256,34 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
         text += `• ${reading}\n`;
       });
 
+      // YouTube Videos Section
+      if (
+        content.resources.youtubeVideos &&
+        content.resources.youtubeVideos.success
+      ) {
+        text += "\nRecommended YouTube Videos:\n";
+        content.resources.youtubeVideos.data.forEach((video, index) => {
+          text += `${index + 1}. ${video.title}\n`;
+          text += `   Channel: ${video.channelTitle}\n`;
+          text += `   Duration: ${video.duration}\n`;
+          text += `   Views: ${parseInt(video.viewCount).toLocaleString()}\n`;
+          text += `   URL: ${video.videoUrl}\n`;
+          if (video.description) {
+            const shortDescription =
+              video.description.length > 100
+                ? video.description.substring(0, 100) + "..."
+                : video.description;
+            text += `   Description: ${shortDescription}\n`;
+          }
+          text += "\n";
+        });
+        text += `Found ${
+          content.resources.youtubeVideos.totalVideos
+        } videos for keywords: ${content.resources.youtubeVideos.keywordsSearched.join(
+          ", "
+        )}\n`;
+      }
+
       text += "\nDIFFERENTIATION STRATEGIES\n";
       text += `For Struggling Learners: ${content.differentiation.strugglingLearners}\n`;
       text += `For Advanced Students: ${content.differentiation.advancedStudents}\n`;
@@ -501,6 +529,64 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
           .map((reading) => `<li>${reading}</li>`)
           .join("")}
     </ul>
+    
+    ${
+      content.resources.youtubeVideos && content.resources.youtubeVideos.success
+        ? `
+    <h3>Recommended YouTube Videos</h3>
+    <table border="1" style="border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 0.9em;">
+        <thead>
+            <tr style="background-color: #f5f5f5;">
+                <th style="padding: 8px; text-align: left; width: 40%;">Title</th>
+                <th style="padding: 8px; text-align: left; width: 20%;">Channel</th>
+                <th style="padding: 8px; text-align: center; width: 10%;">Duration</th>
+                <th style="padding: 8px; text-align: center; width: 10%;">Views</th>
+                <th style="padding: 8px; text-align: left; width: 20%;">URL</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${content.resources.youtubeVideos.data
+              .map(
+                (video) => `
+                <tr>
+                    <td style="padding: 8px; vertical-align: top;">
+                        <strong>${video.title}</strong><br>
+                        <small style="color: #666;">${
+                          video.description && video.description.length > 80
+                            ? video.description.substring(0, 80) + "..."
+                            : video.description || ""
+                        }</small>
+                    </td>
+                    <td style="padding: 8px; vertical-align: top;">${
+                      video.channelTitle
+                    }</td>
+                    <td style="padding: 8px; text-align: center; vertical-align: top;">${
+                      video.duration
+                    }</td>
+                    <td style="padding: 8px; text-align: center; vertical-align: top;">${parseInt(
+                      video.viewCount
+                    ).toLocaleString()}</td>
+                    <td style="padding: 8px; vertical-align: top; word-break: break-all; font-size: 0.8em;">
+                        <a href="${video.videoUrl}" target="_blank">${
+                  video.videoUrl
+                }</a>
+                    </td>
+                </tr>
+                `
+              )
+              .join("")}
+        </tbody>
+    </table>
+    <p style="font-style: italic; color: #666; font-size: 0.9em;">
+        Found ${
+          content.resources.youtubeVideos.totalVideos
+        } videos for keywords: ${content.resources.youtubeVideos.keywordsSearched.join(
+            ", "
+          )}
+    </p>
+    `
+        : ""
+    }
 </div>
 
 <div class="section">
