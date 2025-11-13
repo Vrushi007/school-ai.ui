@@ -24,13 +24,13 @@ interface QuestionPaperLeftSidebarProps {
   selectedClass: ClassLevel | null;
   selectedSubject: Subject | null;
   selectedChapters: Chapter[];
-  questionRequirements: string;
+  totalMarks: number;
   isLoading: boolean;
   chapterOptions: Chapter[];
   onClassLevelChange: (classLevel: ClassLevel | "") => void;
   onSubjectChange: (subject: Subject | "") => void;
   onChapterChange: (chapterIds: string[]) => void;
-  onQuestionRequirementsChange: (requirements: string) => void;
+  onTotalMarksChange: (marks: number) => void;
   onGenerateQuestions: () => void;
 }
 
@@ -38,13 +38,13 @@ const QuestionPaperLeftSidebar: React.FC<QuestionPaperLeftSidebarProps> = ({
   selectedClass,
   selectedSubject,
   selectedChapters,
-  questionRequirements,
+  totalMarks,
   isLoading,
   chapterOptions,
   onClassLevelChange,
   onSubjectChange,
   onChapterChange,
-  onQuestionRequirementsChange,
+  onTotalMarksChange,
   onGenerateQuestions,
 }) => {
   const [isFormExpanded, setIsFormExpanded] = useState(true);
@@ -154,18 +154,14 @@ const QuestionPaperLeftSidebar: React.FC<QuestionPaperLeftSidebarProps> = ({
 
               <TextField
                 fullWidth
-                multiline
-                rows={4}
-                label="Question Requirements"
-                placeholder="Specify what kind of questions you need. Examples:
-• 5 multiple choice questions (2 marks each)
-• 3 short answer questions (5 marks each)
-• 2 long answer questions (10 marks each)
-• 1 true/false question (1 mark each)"
-                value={questionRequirements}
-                onChange={(e) => onQuestionRequirementsChange(e.target.value)}
+                type="number"
+                label="Total Marks"
+                placeholder="Enter total marks for the question paper"
+                value={totalMarks || ""}
+                onChange={(e) => onTotalMarksChange(parseInt(e.target.value) || 0)}
                 variant="outlined"
-                helperText="Describe the types and number of questions you want to generate"
+                helperText="Enter the total marks for the question paper"
+                inputProps={{ min: 1 }}
               />
 
               <Button

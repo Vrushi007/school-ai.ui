@@ -11,7 +11,7 @@ interface QuestionPaperState {
   selectedClass: ClassLevel | null;
   selectedSubject: Subject | null;
   selectedChapters: Chapter[]; // Changed from single chapter to array
-  questionRequirements: string;
+  totalMarks: number;
   generatedQuestions: Question[];
   isLoading: boolean;
 }
@@ -21,7 +21,7 @@ function QuestionPaperGenerator() {
     selectedClass: null,
     selectedSubject: null,
     selectedChapters: [], // Changed to empty array
-    questionRequirements: "",
+    totalMarks: 0,
     generatedQuestions: [],
     isLoading: false,
   });
@@ -66,10 +66,10 @@ function QuestionPaperGenerator() {
     }
   };
 
-  const handleQuestionRequirementsChange = (requirements: string) => {
+  const handleTotalMarksChange = (marks: number) => {
     setState((prev) => ({
       ...prev,
-      questionRequirements: requirements,
+      totalMarks: marks,
     }));
   };
 
@@ -78,14 +78,14 @@ function QuestionPaperGenerator() {
       state.selectedClass &&
       state.selectedSubject &&
       state.selectedChapters.length > 0 && // Check if at least one chapter is selected
-      state.questionRequirements.trim()
+      state.totalMarks > 10
     );
   };
 
   const handleGenerateQuestions = async (): Promise<void> => {
     if (!canGenerateQuestions()) {
       alert(
-        "Please select class, subject, at least one chapter, and specify question requirements before generating questions."
+        "Please select class, subject, at least one chapter, and specify total marks before generating questions."
       );
       return;
     }
@@ -93,30 +93,17 @@ function QuestionPaperGenerator() {
     setState((prev) => ({ ...prev, isLoading: true }));
 
     try {
-      // Generate questions for all selected chapters
-      const allQuestions: Question[] = [];
-
-      for (const chapter of state.selectedChapters) {
-        const questions = await generateQuestions({
-          classLevel: state.selectedClass!,
-          subject: state.selectedSubject!,
-          chapter: chapter,
-          questionRequirements: state.questionRequirements,
-        });
-
-        // Add chapter context to question IDs to avoid conflicts
-        const chapterQuestions = questions.map((q) => ({
-          ...q,
-          id: `${chapter.id}_${q.id}`,
-          question: `[${chapter.title}] ${q.questionText}`, // Add chapter prefix to question
-        }));
-
-        allQuestions.push(...chapterQuestions);
-      }
+      // Generate questions for all selected chapters at once
+      const questions = await generateQuestions({
+        classLevel: state.selectedClass!,
+        subject: state.selectedSubject!,
+        chapters: state.selectedChapters,
+        totalMarks: state.totalMarks,
+      });
 
       setState((prev) => ({
         ...prev,
-        generatedQuestions: allQuestions,
+        generatedQuestions: questions,
       }));
     } catch (error) {
       console.error("Error generating questions:", error);
@@ -145,13 +132,13 @@ function QuestionPaperGenerator() {
         selectedClass={state.selectedClass}
         selectedSubject={state.selectedSubject}
         selectedChapters={state.selectedChapters}
-        questionRequirements={state.questionRequirements}
+        totalMarks={state.totalMarks}
         isLoading={state.isLoading}
         chapterOptions={getChapterOptions()}
         onClassLevelChange={handleClassLevelChange}
         onSubjectChange={handleSubjectChange}
         onChapterChange={handleChapterChange}
-        onQuestionRequirementsChange={handleQuestionRequirementsChange}
+        onTotalMarksChange={handleTotalMarksChange}
         onGenerateQuestions={handleGenerateQuestions}
       />
       <QuestionPaperMainContent
