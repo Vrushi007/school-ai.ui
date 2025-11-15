@@ -65,6 +65,11 @@ export interface AppState {
   currentContent: GeneratedContent | null;
   isLoading: boolean;
   selectedSessionId: number | null;
+  errorModal?: {
+    open: boolean;
+    title: string;
+    message: string;
+  };
 }
 
 // Mock data structure for chapters and topics
