@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { mockData } from "../mockData";
+import { subjectData } from "../subjectData";
 import { ClassLevel, Subject, Chapter } from "../types";
 import { Box } from "@mui/material";
 import QuestionPaperLeftSidebar from "./QuestionPaperLeftSidebar";
 import QuestionPaperMainContent from "./QuestionPaperMainContent";
+import ErrorModal from "./ErrorModal";
 import { Question } from "../services/teacherServices/types";
 import { generateQuestions } from "../services/teacherServices/apiService";
 
@@ -14,6 +15,11 @@ interface QuestionPaperState {
   totalMarks: number;
   generatedQuestions: Question[];
   isLoading: boolean;
+  errorModal: {
+    open: boolean;
+    title: string;
+    message: string;
+  };
 }
 
 function QuestionPaperGenerator() {
@@ -24,6 +30,11 @@ function QuestionPaperGenerator() {
     totalMarks: 0,
     generatedQuestions: [],
     isLoading: false,
+    errorModal: {
+      open: false,
+      title: "Error",
+      message: "",
+    },
   });
 
   const handleClassLevelChange = (classLevel: ClassLevel | "") => {
@@ -48,7 +59,8 @@ function QuestionPaperGenerator() {
   const handleChapterChange = (chapterIds: string[]) => {
     if (state.selectedClass && state.selectedSubject) {
       const chapters =
-        mockData.chapters[state.selectedClass]?.[state.selectedSubject] || [];
+        subjectData.chapters[state.selectedClass]?.[state.selectedSubject] ||
+        [];
       const selectedChapters = chapters.filter((ch: Chapter) =>
         chapterIds.includes(ch.id)
       );
@@ -73,6 +85,16 @@ function QuestionPaperGenerator() {
     }));
   };
 
+  const handleCloseErrorModal = () => {
+    setState((prev) => ({
+      ...prev,
+      errorModal: {
+        ...prev.errorModal,
+        open: false,
+      },
+    }));
+  };
+
   const canGenerateQuestions = (): boolean => {
     return !!(
       state.selectedClass &&
@@ -84,9 +106,15 @@ function QuestionPaperGenerator() {
 
   const handleGenerateQuestions = async (): Promise<void> => {
     if (!canGenerateQuestions()) {
-      alert(
-        "Please select class, subject, at least one chapter, and specify total marks before generating questions."
-      );
+      setState((prev) => ({
+        ...prev,
+        errorModal: {
+          open: true,
+          title: "Validation Error",
+          message:
+            "Please select class, subject, at least one chapter, and specify total marks before generating questions.",
+        },
+      }));
       return;
     }
 
@@ -107,7 +135,15 @@ function QuestionPaperGenerator() {
       }));
     } catch (error) {
       console.error("Error generating questions:", error);
-      alert("Error generating questions. Please try again.");
+      setState((prev) => ({
+        ...prev,
+        errorModal: {
+          open: true,
+          title: "Generation Failed",
+          message:
+            "Something failed, please try again. If the same problem occurs, please contact administrator.",
+        },
+      }));
     } finally {
       setState((prev) => ({ ...prev, isLoading: false }));
     }
@@ -116,37 +152,46 @@ function QuestionPaperGenerator() {
   const getChapterOptions = () => {
     if (!state.selectedClass || !state.selectedSubject) return [];
     return (
-      mockData.chapters[state.selectedClass]?.[state.selectedSubject] || []
+      subjectData.chapters[state.selectedClass]?.[state.selectedSubject] || []
     );
   };
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        gap: 3,
-        flexDirection: { xs: "column", md: "row" },
-      }}
-    >
-      <QuestionPaperLeftSidebar
-        selectedClass={state.selectedClass}
-        selectedSubject={state.selectedSubject}
-        selectedChapters={state.selectedChapters}
-        totalMarks={state.totalMarks}
-        isLoading={state.isLoading}
-        chapterOptions={getChapterOptions()}
-        onClassLevelChange={handleClassLevelChange}
-        onSubjectChange={handleSubjectChange}
-        onChapterChange={handleChapterChange}
-        onTotalMarksChange={handleTotalMarksChange}
-        onGenerateQuestions={handleGenerateQuestions}
+    <>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 3,
+          flexDirection: { xs: "column", md: "row" },
+        }}
+      >
+        <QuestionPaperLeftSidebar
+          selectedClass={state.selectedClass}
+          selectedSubject={state.selectedSubject}
+          selectedChapters={state.selectedChapters}
+          totalMarks={state.totalMarks}
+          isLoading={state.isLoading}
+          chapterOptions={getChapterOptions()}
+          onClassLevelChange={handleClassLevelChange}
+          onSubjectChange={handleSubjectChange}
+          onChapterChange={handleChapterChange}
+          onTotalMarksChange={handleTotalMarksChange}
+          onGenerateQuestions={handleGenerateQuestions}
+        />
+        <QuestionPaperMainContent
+          isLoading={state.isLoading}
+          generatedQuestions={state.generatedQuestions}
+          selectedChapters={state.selectedChapters}
+        />
+      </Box>
+
+      <ErrorModal
+        open={state.errorModal.open}
+        onClose={handleCloseErrorModal}
+        title={state.errorModal.title}
+        message={state.errorModal.message}
       />
-      <QuestionPaperMainContent
-        isLoading={state.isLoading}
-        generatedQuestions={state.generatedQuestions}
-        selectedChapters={state.selectedChapters}
-      />
-    </Box>
+    </>
   );
 }
 

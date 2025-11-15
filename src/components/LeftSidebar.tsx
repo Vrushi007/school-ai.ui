@@ -91,7 +91,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
                   <MenuItem value="">Select Class</MenuItem>
                   {getClasses().map((classLevel) => (
                     <MenuItem key={classLevel} value={classLevel}>
-                      {classLevel} Standard
+                      {classLevel}
                     </MenuItem>
                   ))}
                 </Select>

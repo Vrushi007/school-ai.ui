@@ -15,6 +15,7 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
+import ErrorModal from "./ErrorModal";
 import {
   Send,
   Psychology,
@@ -30,6 +31,7 @@ import {
   createQuestionRequest,
 } from "../services/studentServices/apiService";
 import { ChatMessage, ChatState } from "../services/studentServices/types";
+import { ErrorModalState } from "../interfaces/sessionPlanRenderer";
 import {
   downloadAsPDF,
   copyToClipboard,
@@ -47,6 +49,11 @@ const StudentGetAnswers: React.FC = () => {
   const [exportMenuAnchor, setExportMenuAnchor] = useState<HTMLElement | null>(
     null
   );
+  const [errorModal, setErrorModal] = useState<ErrorModalState>({
+    open: false,
+    title: "",
+    message: "",
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages are added
@@ -57,6 +64,11 @@ const StudentGetAnswers: React.FC = () => {
   // Generate unique ID for messages
   const generateMessageId = () => {
     return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  // Handle closing error modal
+  const handleCloseErrorModal = () => {
+    setErrorModal({ open: false, title: "", message: "" });
   };
 
   // Handle sending a question
@@ -109,18 +121,16 @@ const StudentGetAnswers: React.FC = () => {
     } catch (error) {
       console.error("Error getting answer:", error);
 
-      // Add error message
-      const errorMessage: ChatMessage = {
-        id: generateMessageId(),
-        role: "assistant",
-        content:
-          "Sorry, I couldn't process your question right now. Please try again.",
-        timestamp: new Date(),
-      };
+      // Show error modal instead of adding to chat
+      setErrorModal({
+        open: true,
+        title: "Failed to Get Answer",
+        message:
+          "Something failed, please try again. If the same problem occurs, please contact administrator.",
+      });
 
       setChatState((prev) => ({
         ...prev,
-        messages: [...prev.messages, errorMessage],
         isLoading: false,
       }));
     }
@@ -207,7 +217,11 @@ const StudentGetAnswers: React.FC = () => {
 
   const handleExportAsPDF = () => {
     if (chatState.messages.length === 0) {
-      alert("No conversation to export. Start chatting first!");
+      setErrorModal({
+        open: true,
+        title: "Export Error",
+        message: "No conversation to export. Start chatting first!",
+      });
       return;
     }
 
@@ -221,7 +235,11 @@ const StudentGetAnswers: React.FC = () => {
 
   const handleCopyToClipboard = async () => {
     if (chatState.messages.length === 0) {
-      alert("No conversation to copy. Start chatting first!");
+      setErrorModal({
+        open: true,
+        title: "Copy Error",
+        message: "No conversation to copy. Start chatting first!",
+      });
       return;
     }
 
@@ -505,6 +523,13 @@ const StudentGetAnswers: React.FC = () => {
           )}
         </Box>
       </Paper>
+
+      <ErrorModal
+        open={errorModal.open}
+        onClose={handleCloseErrorModal}
+        title={errorModal.title}
+        message={errorModal.message}
+      />
     </Container>
   );
 };

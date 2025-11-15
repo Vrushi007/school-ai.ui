@@ -1,4 +1,4 @@
-import { mockData } from "../mockData";
+import { subjectData } from "../subjectData";
 import { ClassLevel, Subject, Chapter, AppState } from "../types";
 
 /**
@@ -29,14 +29,14 @@ export const getChapterOptions = (
   selectedSubject: Subject | null
 ): Chapter[] => {
   if (!selectedClass || !selectedSubject) return [];
-  return mockData.chapters[selectedClass]?.[selectedSubject] || [];
+  return subjectData.chapters[selectedClass]?.[selectedSubject] || [];
 };
 
 /**
  * Gets all available class levels from mock data
  */
 export const getClasses = (): ClassLevel[] => {
-  return Object.keys(mockData.chapters) as ClassLevel[];
+  return Object.keys(subjectData.chapters) as ClassLevel[];
 };
 
 /**
@@ -44,7 +44,7 @@ export const getClasses = (): ClassLevel[] => {
  */
 export const getSubjects = (state: AppState): Subject[] => {
   if (!state.selectedClass) return [];
-  return Object.keys(mockData.chapters[state.selectedClass] || {}).map(
+  return Object.keys(subjectData.chapters[state.selectedClass] || {}).map(
     (key) => key as Subject
   );
 };
@@ -56,7 +56,7 @@ export const getSubjectsForClass = (
   classLevel: ClassLevel | null
 ): Subject[] => {
   if (!classLevel) return [];
-  return Object.keys(mockData.chapters[classLevel] || {}).map(
+  return Object.keys(subjectData.chapters[classLevel] || {}).map(
     (key) => key as Subject
   );
 };

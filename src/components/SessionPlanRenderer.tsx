@@ -19,8 +19,9 @@ import {
   ContentCopy,
   PictureAsPdf,
 } from "@mui/icons-material";
-import { SessionPlan, Chapter } from "../types";
+import { SessionPlan } from "../types";
 import { generateSessionDetail } from "../services/teacherServices/apiService";
+import ErrorModal from "./ErrorModal";
 import {
   downloadAsPDF,
   copyToClipboard,
@@ -30,6 +31,7 @@ import {
   SessionDetailContent,
   DetailModalState,
 } from "../interfaces";
+import { ErrorModalState } from "../interfaces/sessionPlanRenderer";
 import { parseDetailContent } from "../services/teacherServices/helper";
 import DetailedLessonPlanRenderer from "./SessionPlan/DetailedLessonPlanRenderer";
 
@@ -46,6 +48,12 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
     title: "",
     isLoading: false,
     exportMenuAnchor: null,
+  });
+
+  const [errorModalState, setErrorModalState] = useState<ErrorModalState>({
+    open: false,
+    title: "",
+    message: "",
   });
 
   const handleGetDetails = async (session: SessionPlan) => {
@@ -120,14 +128,22 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
       }
     } catch (error) {
       console.error("Error loading session details:", error);
-      // Generate fallback HTML content
-      const fallbackHTML = generateFallbackSessionDetailHTML(session, chapter);
-      setModalState((prev) => ({
-        ...prev,
+
+      // Close the detail modal and show error modal
+      setModalState({
+        isOpen: false,
         content: null,
-        htmlContent: fallbackHTML,
+        title: "",
         isLoading: false,
-      }));
+        exportMenuAnchor: null,
+      });
+
+      setErrorModalState({
+        open: true,
+        title: "Failed to Load Session Details",
+        message:
+          "Something failed, please try again. If the same problem occurs, please contact administrator.",
+      });
     }
   };
 
@@ -139,6 +155,10 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
       isLoading: false,
       exportMenuAnchor: null,
     });
+  };
+
+  const handleCloseErrorModal = () => {
+    setErrorModalState({ open: false, title: "", message: "" });
   };
 
   // Export functionality
@@ -615,61 +635,6 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
     handleExportMenuClose();
   };
 
-  // Fallback HTML generator for when API returns HTML instead of structured data
-  const generateFallbackSessionDetailHTML = (
-    sessionPlan: SessionPlan,
-    chapter: Chapter
-  ): string => {
-    return `
-      <div style="font-family: 'Roboto', sans-serif;">
-        <div style="background-color: #e3f2fd; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
-          <h2 style="color: #1976d2; margin-bottom: 8px;">Session ${
-            sessionPlan.sessionNumber
-          }: ${sessionPlan.title}</h2>
-          <p style="margin-bottom: 8px;"><strong>Duration:</strong> ${
-            sessionPlan.duration
-          }</p>
-          <p style="margin-bottom: 16px;">${sessionPlan.summary}</p>
-        </div>
-        
-        <div style="margin-bottom: 24px;">
-          <h3 style="color: #1976d2; margin-bottom: 12px;">Learning Objectives</h3>
-          <ul style="margin: 0; padding-left: 20px;">
-            ${sessionPlan.objectives
-              .map((obj) => `<li style="margin-bottom: 8px;">${obj}</li>`)
-              .join("")}
-          </ul>
-        </div>
-        
-        <div style="margin-bottom: 24px;">
-          <h3 style="color: #1976d2; margin-bottom: 12px;">Introduction (5-10 minutes)</h3>
-          <p>Begin the session by connecting today's topic to real-world applications. Engage students with thought-provoking questions related to ${
-            chapter.title
-          }.</p>
-        </div>
-        
-        <div style="margin-bottom: 24px;">
-          <h3 style="color: #1976d2; margin-bottom: 12px;">Core Content (20-30 minutes)</h3>
-          <p>Detailed explanation of key concepts with step-by-step examples. Include visual aids and interactive demonstrations to enhance understanding.</p>
-        </div>
-        
-        <div style="margin-bottom: 24px;">
-          <h3 style="color: #1976d2; margin-bottom: 12px;">Activities (10-15 minutes)</h3>
-          <p>Hands-on exercises and group work to reinforce learning. Include problem-solving activities that allow students to apply the concepts.</p>
-        </div>
-        
-        <div style="margin-bottom: 24px;">
-          <h3 style="color: #1976d2; margin-bottom: 12px;">Assessment (5-10 minutes)</h3>
-          <p>Quick formative assessment to check student understanding. Include both individual and collaborative evaluation methods.</p>
-        </div>
-        
-        <div style="background-color: #f5f5f5; padding: 16px; border-radius: 8px; font-style: italic; color: #666;">
-          <strong>Note:</strong> This is a fallback lesson plan. For AI-generated detailed content, please try again or check your connection.
-        </div>
-      </div>
-    `;
-  };
-
   return (
     <Box sx={{ fontFamily: "Roboto, sans-serif" }}>
       {/* Header Info */}
@@ -899,6 +864,13 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
           )}
         </Paper>
       </Modal>
+
+      <ErrorModal
+        open={errorModalState.open}
+        onClose={handleCloseErrorModal}
+        title={errorModalState.title}
+        message={errorModalState.message}
+      />
     </Box>
   );
 };

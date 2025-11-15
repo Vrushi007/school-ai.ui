@@ -134,3 +134,9 @@ export interface DetailModalState {
   isLoading: boolean;
   exportMenuAnchor: HTMLElement | null;
 }
+
+export interface ErrorModalState {
+  open: boolean;
+  title: string;
+  message: string;
+}

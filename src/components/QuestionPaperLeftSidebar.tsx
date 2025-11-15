@@ -84,7 +84,7 @@ const QuestionPaperLeftSidebar: React.FC<QuestionPaperLeftSidebarProps> = ({
                   <MenuItem value="">Select Class</MenuItem>
                   {getClasses().map((classLevel) => (
                     <MenuItem key={classLevel} value={classLevel}>
-                      {classLevel} Standard
+                      {classLevel}
                     </MenuItem>
                   ))}
                 </Select>

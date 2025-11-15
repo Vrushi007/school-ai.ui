@@ -1,15 +1,6 @@
 import { SessionPlan } from "../../types";
 import { makePostRequest } from "../baseService";
-import {
-  generateFallbackQuestions,
-  generateFallbackSessionDetail,
-  generateFallbackSessionPlan,
-} from "../fallbackApis/fallbackApiCalls";
-import {
-  mapQuestionType,
-  transformQuestionsResponse,
-  transformSessionPlanResponse,
-} from "./helper";
+import { mapQuestionType } from "./helper";
 import {
   Question,
   QuestionGenerationRequest,
@@ -47,9 +38,7 @@ export const generateSessionPlan = async (
     return (data as any).lessonPlan as SessionPlan[];
   } catch (error) {
     console.error("Error generating session plan:", error);
-    // Fallback: Generate mock session plans if API fails
-    const sessionPlans = generateFallbackSessionPlan();
-    return transformSessionPlanResponse(sessionPlans.data);
+    throw error;
   }
 };
 
@@ -86,9 +75,7 @@ export const generateSessionDetail = async (
     return sessionContent;
   } catch (error) {
     console.error("Error generating session detail:", error);
-    // Fallback: Return structured content as JSON string
-    const fallbackResponse = generateFallbackSessionDetail();
-    return JSON.stringify(fallbackResponse.data.session_content);
+    throw error;
   }
 };
 
@@ -169,7 +156,6 @@ export const generateQuestions = async (
     return questions;
   } catch (error) {
     console.error("Error generating questions:", error);
-    // Fallback: Generate mock questions if API fails
-    return transformQuestionsResponse(generateFallbackQuestions());
+    throw error;
   }
 };
