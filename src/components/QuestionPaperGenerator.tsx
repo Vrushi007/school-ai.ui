@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { mockData } from "../mockData";
+import { subjectData } from "../subjectData";
 import { ClassLevel, Subject, Chapter } from "../types";
 import { Box } from "@mui/material";
 import QuestionPaperLeftSidebar from "./QuestionPaperLeftSidebar";
@@ -48,7 +48,7 @@ function QuestionPaperGenerator() {
   const handleChapterChange = (chapterIds: string[]) => {
     if (state.selectedClass && state.selectedSubject) {
       const chapters =
-        mockData.chapters[state.selectedClass]?.[state.selectedSubject] || [];
+        subjectData.chapters[state.selectedClass]?.[state.selectedSubject] || [];
       const selectedChapters = chapters.filter((ch: Chapter) =>
         chapterIds.includes(ch.id)
       );
@@ -116,7 +116,7 @@ function QuestionPaperGenerator() {
   const getChapterOptions = () => {
     if (!state.selectedClass || !state.selectedSubject) return [];
     return (
-      mockData.chapters[state.selectedClass]?.[state.selectedSubject] || []
+      subjectData.chapters[state.selectedClass]?.[state.selectedSubject] || []
     );
   };
 

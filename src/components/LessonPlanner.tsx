@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { mockData } from "../mockData";
+import { subjectData } from "../subjectData";
 import {
   ClassLevel,
   Subject,
@@ -55,7 +55,7 @@ function LessonPlanner() {
   const handleChapterChange = (chapterId: string) => {
     if (chapterId && state.selectedClass && state.selectedSubject) {
       const chapters =
-        mockData.chapters[state.selectedClass]?.[state.selectedSubject] || [];
+        subjectData.chapters[state.selectedClass]?.[state.selectedSubject] || [];
       const chapter = chapters.find((ch: Chapter) => ch.id === chapterId);
       setState((prev) => ({
         ...prev,
