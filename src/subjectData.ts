@@ -192,199 +192,180 @@ export const subjectData: SubjectData = {
           "title": "Crop Production and Management",
           "subject": "Science",
           "classLevel": "8th",
-          "description": "Agricultural practices and crop management",
+          "description": "Introduction to agricultural practices, crop production, irrigation and harvesting.",
           "topics": [
             { "id": "topic_sci_8_1_1", "title": "Agricultural Practices", "chapterId": "sci_8_ch1", "order": 1 },
             { "id": "topic_sci_8_1_2", "title": "Basic Practices of Crop Production", "chapterId": "sci_8_ch1", "order": 2 },
-            { "id": "topic_sci_8_1_3", "title": "Preparation of Soil", "chapterId": "sci_8_ch1", "order": 3 }
+            { "id": "topic_sci_8_1_3", "title": "Preparation of Soil", "chapterId": "sci_8_ch1", "order": 3 },
+            { "id": "topic_sci_8_1_4", "title": "Sowing and Manuring", "chapterId": "sci_8_ch1", "order": 4 },
+            { "id": "topic_sci_8_1_5", "title": "Irrigation Methods", "chapterId": "sci_8_ch1", "order": 5 },
+            { "id": "topic_sci_8_1_6", "title": "Harvesting and Storage", "chapterId": "sci_8_ch1", "order": 6 }
           ]
         },
+
         {
           "id": "sci_8_ch2",
           "title": "Microorganisms: Friend and Foe",
           "subject": "Science",
           "classLevel": "8th",
-          "description": "Understanding microorganisms and their effects",
+          "description": "Understanding useful and harmful microorganisms and their applications.",
           "topics": [
-            { "id": "id_sci_8_2_1", "title": "Types of Microorganisms", "chapterId": "sci_8_ch2", "order": 1 },
-            { "id": "id_sci_8_2_2", "title": "Useful Microorganisms", "chapterId": "sci_8_ch2", "order": 2 },
-            { "id": "id_sci_8_2_3", "title": "Diseases Caused by Microorganisms", "chapterId": "sci_8_ch2", "order": 3 }
+            { "id": "topic_sci_8_2_1", "title": "Introduction to Microorganisms", "chapterId": "sci_8_ch2", "order": 1 },
+            { "id": "topic_sci_8_2_2", "title": "Useful Microorganisms", "chapterId": "sci_8_ch2", "order": 2 },
+            { "id": "topic_sci_8_2_3", "title": "Harmful Microorganisms", "chapterId": "sci_8_ch2", "order": 3 },
+            { "id": "topic_sci_8_2_4", "title": "Food Preservation", "chapterId": "sci_8_ch2", "order": 4 },
+            { "id": "topic_sci_8_2_5", "title": "Nitrogen Cycle", "chapterId": "sci_8_ch2", "order": 5 }
           ]
         },
+
         {
           "id": "sci_8_ch3",
-          "title": "Synthetic Fibres and Plastics",
-          "subject": "Science",
-          "classLevel": "8th",
-          "description": "Types of synthetic fibres and their properties",
-          "topics": [
-            { "id": "topic_sci_8_3_1", "title": "Types of Synthetic Fibres", "chapterId": "sci_8_ch3", "order": 1 },
-            { "id": "topic_sci_8_3_2", "title": "Plastics and Environment", "chapterId": "sci_8_ch3", "order": 2 }
-          ]
-        },
-        {
-          "id": "sci_8_ch4",
-          "title": "Materials: Metals and Non-metals",
-          "subject": "Science",
-          "classLevel": "8th",
-          "description": "Properties and uses of metals and non-metals",
-          "topics": [
-            { "id": "topic_sci_8_4_1", "title": "Physical Properties", "chapterId": "sci_8_ch4", "order": 1 },
-            { "id": "topic_sci_8_4_2", "title": "Chemical Properties", "chapterId": "sci_8_ch4", "order": 2 }
-          ]
-        },
-        {
-          "id": "sci_8_ch5",
           "title": "Coal and Petroleum",
           "subject": "Science",
           "classLevel": "8th",
-          "description": "Fossil fuels and their uses",
+          "description": "Study of fossil fuels, their formation, extraction and conservation.",
           "topics": [
-            { "id": "topic_sci_8_5_1", "title": "Formation of Fossil Fuels", "chapterId": "sci_8_ch5", "order": 1 },
-            { "id": "topic_sci_8_5_2", "title": "Natural Gas and Petroleum", "chapterId": "sci_8_ch5", "order": 2 }
+            { "id": "topic_sci_8_3_1", "title": "Natural Resources", "chapterId": "sci_8_ch3", "order": 1 },
+            { "id": "topic_sci_8_3_2", "title": "Coal: Formation and Uses", "chapterId": "sci_8_ch3", "order": 2 },
+            { "id": "topic_sci_8_3_3", "title": "Petroleum and Refining", "chapterId": "sci_8_ch3", "order": 3 },
+            { "id": "topic_sci_8_3_4", "title": "Natural Gas", "chapterId": "sci_8_ch3", "order": 4 },
+            { "id": "topic_sci_8_3_5", "title": "Conservation of Fossil Fuels", "chapterId": "sci_8_ch3", "order": 5 }
           ]
         },
+
         {
-          "id": "sci_8_ch6",
+          "id": "sci_8_ch4",
           "title": "Combustion and Flame",
           "subject": "Science",
           "classLevel": "8th",
-          "description": "Understanding combustion and fire control",
+          "description": "Understanding combustion process, flame types and fuel efficiency.",
           "topics": [
-            { "id": "topic_sci_8_6_1", "title": "Types of Combustion", "chapterId": "sci_8_ch6", "order": 1 },
-            { "id": "topic_sci_8_6_2", "title": "Structure of a Flame", "chapterId": "sci_8_ch6", "order": 2 }
+            { "id": "topic_sci_8_4_1", "title": "What is Combustion?", "chapterId": "sci_8_ch4", "order": 1 },
+            { "id": "topic_sci_8_4_2", "title": "Types of Combustion", "chapterId": "sci_8_ch4", "order": 2 },
+            { "id": "topic_sci_8_4_3", "title": "Structure of Flame", "chapterId": "sci_8_ch4", "order": 3 },
+            { "id": "topic_sci_8_4_4", "title": "Ignition Temperature", "chapterId": "sci_8_ch4", "order": 4 },
+            { "id": "topic_sci_8_4_5", "title": "Fuel Efficiency", "chapterId": "sci_8_ch4", "order": 5 }
           ]
         },
+
         {
-          "id": "sci_8_ch7",
+          "id": "sci_8_ch5",
           "title": "Conservation of Plants and Animals",
           "subject": "Science",
           "classLevel": "8th",
-          "description": "Protecting flora and fauna",
+          "description": "Forest conservation, wildlife protection and biodiversity restoration.",
           "topics": [
-            { "id": "topic_sci_8_7_1", "title": "Deforestation", "chapterId": "sci_8_ch7", "order": 1 },
-            { "id": "topic_sci_8_7_2", "title": "Conservation Methods", "chapterId": "sci_8_ch7", "order": 2 }
+            { "id": "topic_sci_8_5_1", "title": "Deforestation", "chapterId": "sci_8_ch5", "order": 1 },
+            { "id": "topic_sci_8_5_2", "title": "Flora and Fauna", "chapterId": "sci_8_ch5", "order": 2 },
+            { "id": "topic_sci_8_5_3", "title": "National Parks and Sanctuaries", "chapterId": "sci_8_ch5", "order": 3 },
+            { "id": "topic_sci_8_5_4", "title": "Red Data Book", "chapterId": "sci_8_ch5", "order": 4 },
+            { "id": "topic_sci_8_5_5", "title": "Reforestation", "chapterId": "sci_8_ch5", "order": 5 }
           ]
         },
+
         {
-          "id": "sci_8_ch8",
-          "title": "Cell – Structure and Functions",
-          "subject": "Science",
-          "classLevel": "8th",
-          "description": "Understanding the basic unit of life",
-          "topics": [
-            { "id": "topic_sci_8_8_1", "title": "Cell Structure", "chapterId": "sci_8_ch8", "order": 1 },
-            { "id": "topic_sci_8_8_2", "title": "Cell Organelles", "chapterId": "sci_8_ch8", "order": 2 }
-          ]
-        },
-        {
-          "id": "sci_8_ch9",
+          "id": "sci_8_ch6",
           "title": "Reproduction in Animals",
           "subject": "Science",
           "classLevel": "8th",
-          "description": "Modes of reproduction",
+          "description": "Reproduction modes, fertilization and embryo development.",
           "topics": [
-            { "id": "topic_sci_8_9_1", "title": "Asexual Reproduction", "chapterId": "sci_8_ch9", "order": 1 },
-            { "id": "topic_sci_8_9_2", "title": "Sexual Reproduction", "chapterId": "sci_8_ch9", "order": 2 }
+            { "id": "topic_sci_8_6_1", "title": "Modes of Reproduction", "chapterId": "sci_8_ch6", "order": 1 },
+            { "id": "topic_sci_8_6_2", "title": "Sexual Reproduction", "chapterId": "sci_8_ch6", "order": 2 },
+            { "id": "topic_sci_8_6_3", "title": "Fertilisation & Development", "chapterId": "sci_8_ch6", "order": 3 },
+            { "id": "topic_sci_8_6_4", "title": "Viviparous & Oviparous Animals", "chapterId": "sci_8_ch6", "order": 4 }
           ]
         },
+
         {
-          "id": "sci_8_ch10",
+          "id": "sci_8_ch7",
           "title": "Reaching the Age of Adolescence",
           "subject": "Science",
           "classLevel": "8th",
-          "description": "Adolescence and reproductive health",
+          "description": "Body changes, hormones and adolescence health.",
           "topics": [
-            { "id": "topic_sci_8_10_1", "title": "Puberty Changes", "chapterId": "sci_8_ch10", "order": 1 },
-            { "id": "topic_sci_8_10_2", "title": "Reproductive Health", "chapterId": "sci_8_ch10", "order": 2 }
+            { "id": "topic_sci_8_7_1", "title": "Puberty and Adolescence", "chapterId": "sci_8_ch7", "order": 1 },
+            { "id": "topic_sci_8_7_2", "title": "Hormones and Endocrine System", "chapterId": "sci_8_ch7", "order": 2 },
+            { "id": "topic_sci_8_7_3", "title": "Secondary Sexual Characters", "chapterId": "sci_8_ch7", "order": 3 },
+            { "id": "topic_sci_8_7_4", "title": "Adolescent Health", "chapterId": "sci_8_ch7", "order": 4 }
           ]
         },
+
         {
-          "id": "sci_8_ch11",
+          "id": "sci_8_ch8",
           "title": "Force and Pressure",
           "subject": "Science",
           "classLevel": "8th",
-          "description": "Forces, pressure, and their applications",
+          "description": "Understanding force, pressure and their applications.",
           "topics": [
-            { "id": "topic_sci_8_11_1", "title": "Types of Forces", "chapterId": "sci_8_ch11", "order": 1 },
-            { "id": "topic_sci_8_11_2", "title": "Pressure and Applications", "chapterId": "sci_8_ch11", "order": 2 }
+            { "id": "topic_sci_8_8_1", "title": "Types of Force", "chapterId": "sci_8_ch8", "order": 1 },
+            { "id": "topic_sci_8_8_2", "title": "Pressure and Applications", "chapterId": "sci_8_ch8", "order": 2 },
+            { "id": "topic_sci_8_8_3", "title": "Pressure in Fluids", "chapterId": "sci_8_ch8", "order": 3 }
           ]
         },
+
         {
-          "id": "sci_8_ch12",
+          "id": "sci_8_ch9",
           "title": "Friction",
           "subject": "Science",
           "classLevel": "8th",
-          "description": "Effects of friction and ways to reduce it",
+          "description": "Understanding friction, types and controlling methods.",
           "topics": [
-            { "id": "topic_sci_8_12_1", "title": "Causes of Friction", "chapterId": "sci_8_ch12", "order": 1 },
-            { "id": "topic_sci_8_12_2", "title": "Increasing & Reducing Friction", "chapterId": "sci_8_ch12", "order": 2 }
+            { "id": "topic_sci_8_9_1", "title": "Types of Friction", "chapterId": "sci_8_ch9", "order": 1 },
+            { "id": "topic_sci_8_9_2", "title": "Factors Affecting Friction", "chapterId": "sci_8_ch9", "order": 2 },
+            { "id": "topic_sci_8_9_3", "title": "Increasing & Reducing Friction", "chapterId": "sci_8_ch9", "order": 3 }
           ]
         },
+
         {
-          "id": "sci_8_ch13",
+          "id": "sci_8_ch10",
           "title": "Sound",
           "subject": "Science",
           "classLevel": "8th",
-          "description": "Properties and production of sound",
+          "description": "Production, propagation and characteristics of sound.",
           "topics": [
-            { "id": "topic_sci_8_13_1", "title": "Sound Waves", "chapterId": "sci_8_ch13", "order": 1 },
-            { "id": "topic_sci_8_13_2", "title": "Human Ear", "chapterId": "sci_8_ch13", "order": 2 }
+            { "id": "topic_sci_8_10_1", "title": "Production of Sound", "chapterId": "sci_8_ch10", "order": 1 },
+            { "id": "topic_sci_8_10_2", "title": "Propagation of Sound", "chapterId": "sci_8_ch10", "order": 2 },
+            { "id": "topic_sci_8_10_3", "title": "Characteristics of Sound", "chapterId": "sci_8_ch10", "order": 3 }
           ]
         },
+
         {
-          "id": "sci_8_ch14",
+          "id": "sci_8_ch11",
           "title": "Chemical Effects of Electric Current",
           "subject": "Science",
           "classLevel": "8th",
-          "description": "Electrolysis and its uses",
+          "description": "Electric current in liquids and electroplating.",
           "topics": [
-            { "id": "topic_sci_8_14_1", "title": "Electroplating", "chapterId": "sci_8_ch14", "order": 1 },
-            { "id": "topic_sci_8_14_2", "title": "Chemical Reactions", "chapterId": "sci_8_ch14", "order": 2 }
+            { "id": "topic_sci_8_11_1", "title": "Electric Current in Liquids", "chapterId": "sci_8_ch11", "order": 1 },
+            { "id": "topic_sci_8_11_2", "title": "Chemical Effects of Current", "chapterId": "sci_8_ch11", "order": 2 },
+            { "id": "topic_sci_8_11_3", "title": "Electroplating", "chapterId": "sci_8_ch11", "order": 3 }
           ]
         },
+
         {
-          "id": "sci_8_ch15",
+          "id": "sci_8_ch12",
           "title": "Some Natural Phenomena",
           "subject": "Science",
           "classLevel": "8th",
-          "description": "Earthquakes, lightning, and safety",
+          "description": "Lightning, earthquakes and safety measures.",
           "topics": [
-            { "id": "topic_sci_8_15_1", "title": "Lightning", "chapterId": "sci_8_ch15", "order": 1 },
-            { "id": "topic_sci_8_15_2", "title": "Earthquakes", "chapterId": "sci_8_ch15", "order": 2 }
+            { "id": "topic_sci_8_12_1", "title": "Lightning & Charging", "chapterId": "sci_8_ch12", "order": 1 },
+            { "id": "topic_sci_8_12_2", "title": "Earthquakes", "chapterId": "sci_8_ch12", "order": 2 },
+            { "id": "topic_sci_8_12_3", "title": "Safety Measures", "chapterId": "sci_8_ch12", "order": 3 }
           ]
         },
+
         {
-          "id": "sci_8_ch16",
+          "id": "sci_8_ch13",
           "title": "Light",
           "subject": "Science",
           "classLevel": "8th",
-          "description": "Reflection and refraction basics",
+          "description": "Reflection, multiple reflection and the human eye.",
           "topics": [
-            { "id": "topic_sci_8_16_1", "title": "Reflection", "chapterId": "sci_8_ch16", "order": 1 },
-            { "id": "topic_sci_8_16_2", "title": "Human Eye", "chapterId": "sci_8_ch16", "order": 2 }
-          ]
-        },
-        {
-          "id": "sci_8_ch17",
-          "title": "Stars and the Solar System",
-          "subject": "Science",
-          "classLevel": "8th",
-          "description": "Astronomy and celestial objects",
-          "topics": [
-            { "id": "topic_sci_8_17_1", "title": "Stars & Constellations", "chapterId": "sci_8_ch17", "order": 1 },
-            { "id": "topic_sci_8_17_2", "title": "Planetary System", "chapterId": "sci_8_ch17", "order": 2 }
-          ]
-        },
-        {
-          "id": "sci_8_ch18",
-          "title": "Pollution of Air and Water",
-          "subject": "Science",
-          "classLevel": "8th",
-          "description": "Environmental pollution and solutions",
-          "topics": [
-            { "id": "topic_sci_8_18_1", "title": "Air Pollution", "chapterId": "sci_8_ch18", "order": 1 },
-            { "id": "topic_sci_8_18_2", "title": "Water Pollution", "chapterId": "sci_8_ch18", "order": 2 }
+            { "id": "topic_sci_8_13_1", "title": "Laws of Reflection", "chapterId": "sci_8_ch13", "order": 1 },
+            { "id": "topic_sci_8_13_2", "title": "Multiple Reflection", "chapterId": "sci_8_ch13", "order": 2 },
+            { "id": "topic_sci_8_13_3", "title": "Human Eye & Vision", "chapterId": "sci_8_ch13", "order": 3 }
           ]
         }
       ],
