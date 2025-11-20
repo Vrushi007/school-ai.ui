@@ -19,8 +19,9 @@ import {
   ContentCopy,
   PictureAsPdf,
 } from "@mui/icons-material";
-import { SessionPlan, Chapter } from "../types";
+import { SessionPlan } from "../types";
 import { generateSessionDetail } from "../services/teacherServices/apiService";
+import ErrorModal from "./ErrorModal";
 import {
   downloadAsPDF,
   copyToClipboard,
@@ -30,7 +31,9 @@ import {
   SessionDetailContent,
   DetailModalState,
 } from "../interfaces";
+import { ErrorModalState } from "../interfaces/sessionPlanRenderer";
 import { parseDetailContent } from "../services/teacherServices/helper";
+import DetailedLessonPlanRenderer from "./SessionPlan/DetailedLessonPlanRenderer";
 
 const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
   sessionPlans,
@@ -45,6 +48,12 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
     title: "",
     isLoading: false,
     exportMenuAnchor: null,
+  });
+
+  const [errorModalState, setErrorModalState] = useState<ErrorModalState>({
+    open: false,
+    title: "",
+    message: "",
   });
 
   const handleGetDetails = async (session: SessionPlan) => {
@@ -119,14 +128,22 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
       }
     } catch (error) {
       console.error("Error loading session details:", error);
-      // Generate fallback HTML content
-      const fallbackHTML = generateFallbackSessionDetailHTML(session, chapter);
-      setModalState((prev) => ({
-        ...prev,
+
+      // Close the detail modal and show error modal
+      setModalState({
+        isOpen: false,
         content: null,
-        htmlContent: fallbackHTML,
+        title: "",
         isLoading: false,
-      }));
+        exportMenuAnchor: null,
+      });
+
+      setErrorModalState({
+        open: true,
+        title: "Failed to Load Session Details",
+        message:
+          "Something failed, please try again. If the same problem occurs, please contact administrator.",
+      });
     }
   };
 
@@ -138,6 +155,10 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
       isLoading: false,
       exportMenuAnchor: null,
     });
+  };
+
+  const handleCloseErrorModal = () => {
+    setErrorModalState({ open: false, title: "", message: "" });
   };
 
   // Export functionality
@@ -254,6 +275,34 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
       content.resources.additionalReadingOrMedia.forEach((reading) => {
         text += `• ${reading}\n`;
       });
+
+      // YouTube Videos Section
+      if (
+        content.resources.youtubeVideos &&
+        content.resources.youtubeVideos.success
+      ) {
+        text += "\nRecommended YouTube Videos:\n";
+        content.resources.youtubeVideos.data.forEach((video, index) => {
+          text += `${index + 1}. ${video.title}\n`;
+          text += `   Channel: ${video.channelTitle}\n`;
+          text += `   Duration: ${video.duration}\n`;
+          text += `   Views: ${parseInt(video.viewCount).toLocaleString()}\n`;
+          text += `   URL: ${video.videoUrl}\n`;
+          if (video.description) {
+            const shortDescription =
+              video.description.length > 100
+                ? video.description.substring(0, 100) + "..."
+                : video.description;
+            text += `   Description: ${shortDescription}\n`;
+          }
+          text += "\n";
+        });
+        text += `Found ${
+          content.resources.youtubeVideos.totalVideos
+        } videos for keywords: ${content.resources.youtubeVideos.keywordsSearched.join(
+          ", "
+        )}\n`;
+      }
 
       text += "\nDIFFERENTIATION STRATEGIES\n";
       text += `For Struggling Learners: ${content.differentiation.strugglingLearners}\n`;
@@ -500,6 +549,64 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
           .map((reading) => `<li>${reading}</li>`)
           .join("")}
     </ul>
+    
+    ${
+      content.resources.youtubeVideos && content.resources.youtubeVideos.success
+        ? `
+    <h3>Recommended YouTube Videos</h3>
+    <table border="1" style="border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 0.9em;">
+        <thead>
+            <tr style="background-color: #f5f5f5;">
+                <th style="padding: 8px; text-align: left; width: 40%;">Title</th>
+                <th style="padding: 8px; text-align: left; width: 20%;">Channel</th>
+                <th style="padding: 8px; text-align: center; width: 10%;">Duration</th>
+                <th style="padding: 8px; text-align: center; width: 10%;">Views</th>
+                <th style="padding: 8px; text-align: left; width: 20%;">URL</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${content.resources.youtubeVideos.data
+              .map(
+                (video) => `
+                <tr>
+                    <td style="padding: 8px; vertical-align: top;">
+                        <strong>${video.title}</strong><br>
+                        <small style="color: #666;">${
+                          video.description && video.description.length > 80
+                            ? video.description.substring(0, 80) + "..."
+                            : video.description || ""
+                        }</small>
+                    </td>
+                    <td style="padding: 8px; vertical-align: top;">${
+                      video.channelTitle
+                    }</td>
+                    <td style="padding: 8px; text-align: center; vertical-align: top;">${
+                      video.duration
+                    }</td>
+                    <td style="padding: 8px; text-align: center; vertical-align: top;">${parseInt(
+                      video.viewCount
+                    ).toLocaleString()}</td>
+                    <td style="padding: 8px; vertical-align: top; word-break: break-all; font-size: 0.8em;">
+                        <a href="${video.videoUrl}" target="_blank">${
+                  video.videoUrl
+                }</a>
+                    </td>
+                </tr>
+                `
+              )
+              .join("")}
+        </tbody>
+    </table>
+    <p style="font-style: italic; color: #666; font-size: 0.9em;">
+        Found ${
+          content.resources.youtubeVideos.totalVideos
+        } videos for keywords: ${content.resources.youtubeVideos.keywordsSearched.join(
+            ", "
+          )}
+    </p>
+    `
+        : ""
+    }
 </div>
 
 <div class="section">
@@ -526,700 +633,6 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
     downloadAsPDF(htmlContent, filename, modalState.title);
 
     handleExportMenuClose();
-  };
-
-  const renderStructuredContent = (content: SessionDetailContent) => {
-    return (
-      <Box sx={{ "& > *": { marginBottom: 3 } }}>
-        {/* Session Header */}
-        <Paper sx={{ padding: 2, backgroundColor: "#e3f2fd", borderRadius: 1 }}>
-          <Typography
-            variant="h6"
-            sx={{ color: "primary.main", marginBottom: 1 }}
-          >
-            {content.sessionTitle}
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ fontWeight: 600, marginBottom: 0.5 }}
-          >
-            Subject: {content.subject} | Class: {content.class}
-          </Typography>
-          <Typography variant="body2" sx={{ fontWeight: 600, marginBottom: 1 }}>
-            Duration: {content.duration}
-          </Typography>
-          <Typography variant="body2" sx={{ fontStyle: "italic" }}>
-            {content.summary}
-          </Typography>
-        </Paper>
-
-        {/* Objectives */}
-        <Paper sx={{ padding: 2, border: "1px solid #e0e0e0" }}>
-          <Typography
-            variant="h6"
-            sx={{ color: "primary.main", marginBottom: 2 }}
-          >
-            Learning Objectives
-          </Typography>
-          <Box component="ol" sx={{ margin: 0, paddingLeft: 2.5 }}>
-            {content.objectives.map((objective, index) => (
-              <Typography
-                key={index}
-                component="li"
-                variant="body2"
-                sx={{ marginBottom: 0.5 }}
-              >
-                {objective}
-              </Typography>
-            ))}
-          </Box>
-        </Paper>
-
-        {/* Teaching Script */}
-        <Paper sx={{ padding: 2, border: "1px solid #e0e0e0" }}>
-          <Typography
-            variant="h6"
-            sx={{ color: "primary.main", marginBottom: 2 }}
-          >
-            Teaching Script
-          </Typography>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Overview:
-            </Typography>
-            <Typography variant="body2" sx={{ fontStyle: "italic" }}>
-              {content.teachingScript.overview}
-            </Typography>
-          </Box>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Step-by-Step Teaching:
-            </Typography>
-            {content.teachingScript.stepByStep.map((step, index) => (
-              <Box
-                key={index}
-                sx={{
-                  marginBottom: 1.5,
-                  padding: 1,
-                  backgroundColor: "#f9f9f9",
-                  borderRadius: 1,
-                }}
-              >
-                <Typography
-                  variant="body2"
-                  sx={{ fontWeight: 600, color: "primary.main" }}
-                >
-                  {step.time}
-                </Typography>
-                <Typography variant="body2" sx={{ marginBottom: 0.5 }}>
-                  <strong>Teacher:</strong> {step.teacherLines}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ fontStyle: "italic", color: "#666" }}
-                >
-                  <strong>Student Activity:</strong> {step.studentActivity}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-
-          <Box>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Transitions:
-            </Typography>
-            <Typography variant="body2">
-              {content.teachingScript.transitions}
-            </Typography>
-          </Box>
-        </Paper>
-
-        {/* Board Work Plan */}
-        <Paper sx={{ padding: 2, border: "1px solid #e0e0e0" }}>
-          <Typography
-            variant="h6"
-            sx={{ color: "primary.main", marginBottom: 2 }}
-          >
-            Board Work Plan
-          </Typography>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Definitions:
-            </Typography>
-            <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
-              {content.boardWorkPlan.definitions.map((definition, index) => (
-                <Typography
-                  key={index}
-                  component="li"
-                  variant="body2"
-                  sx={{ marginBottom: 0.5 }}
-                >
-                  {definition}
-                </Typography>
-              ))}
-            </Box>
-          </Box>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Laws/Rules:
-            </Typography>
-            <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
-              {content.boardWorkPlan.lawsOrRules.map((rule, index) => (
-                <Typography
-                  key={index}
-                  component="li"
-                  variant="body2"
-                  sx={{ marginBottom: 0.5 }}
-                >
-                  <strong>{rule.name}:</strong> {rule.statement} (
-                  {rule.notation})
-                </Typography>
-              ))}
-            </Box>
-          </Box>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Diagrams to Draw:
-            </Typography>
-            <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
-              {content.boardWorkPlan.diagramsToDraw.map((diagram, index) => (
-                <Typography
-                  key={index}
-                  component="li"
-                  variant="body2"
-                  sx={{ marginBottom: 0.5 }}
-                >
-                  <strong>{diagram.label}:</strong> {diagram.instructions}
-                </Typography>
-              ))}
-            </Box>
-          </Box>
-
-          <Box>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Keywords:
-            </Typography>
-            <Typography variant="body2">
-              {content.boardWorkPlan.keywords.join(", ")}
-            </Typography>
-          </Box>
-        </Paper>
-
-        {/* Detailed Explanations */}
-        <Paper sx={{ padding: 2, border: "1px solid #e0e0e0" }}>
-          <Typography
-            variant="h6"
-            sx={{ color: "primary.main", marginBottom: 2 }}
-          >
-            Detailed Explanations
-          </Typography>
-          {content.detailedExplanations.subtopics.map((subtopic, index) => (
-            <Box key={index} sx={{ marginBottom: 3 }}>
-              <Typography
-                variant="h6"
-                sx={{
-                  color: "primary.main",
-                  marginBottom: 1,
-                  fontSize: "1.1rem",
-                }}
-              >
-                {subtopic.title}
-              </Typography>
-              <Typography variant="body2" sx={{ marginBottom: 1 }}>
-                {subtopic.explanation}
-              </Typography>
-              <Typography variant="body2" sx={{ marginBottom: 1 }}>
-                <strong>Example:</strong> {subtopic.example}
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{ fontStyle: "italic", color: "#666", marginBottom: 1 }}
-              >
-                <strong>Classroom Tips:</strong> {subtopic.classroomTips}
-              </Typography>
-              {subtopic.comparisonTable?.useIfRelevant && (
-                <Box sx={{ marginTop: 1 }}>
-                  <table
-                    style={{
-                      width: "100%",
-                      borderCollapse: "collapse",
-                      border: "1px solid #ddd",
-                    }}
-                  >
-                    <thead>
-                      <tr>
-                        {subtopic.comparisonTable.headers.map((header, idx) => (
-                          <th
-                            key={idx}
-                            style={{
-                              padding: "8px",
-                              backgroundColor: "#f0f0f0",
-                              border: "1px solid #ddd",
-                            }}
-                          >
-                            {header}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {subtopic.comparisonTable.rows.map((row, rowIdx) => (
-                        <tr key={rowIdx}>
-                          {row.map((cell, cellIdx) => (
-                            <td
-                              key={cellIdx}
-                              style={{
-                                padding: "8px",
-                                border: "1px solid #ddd",
-                              }}
-                            >
-                              {cell}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </Box>
-              )}
-            </Box>
-          ))}
-        </Paper>
-
-        {/* Activities */}
-        <Paper sx={{ padding: 2, border: "1px solid #e0e0e0" }}>
-          <Typography
-            variant="h6"
-            sx={{ color: "primary.main", marginBottom: 2 }}
-          >
-            Activities
-          </Typography>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Warm-up Hook:
-            </Typography>
-            <Typography variant="body2" sx={{ fontStyle: "italic" }}>
-              {content.activities.warmUpHook}
-            </Typography>
-          </Box>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Interactive Activities:
-            </Typography>
-            {content.activities.interactive.map((activity, index) => (
-              <Box
-                key={index}
-                sx={{
-                  marginBottom: 1.5,
-                  padding: 1,
-                  backgroundColor: "#f9f9f9",
-                  borderRadius: 1,
-                }}
-              >
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {activity.name} ({activity.time})
-                </Typography>
-                <Typography variant="body2" sx={{ marginBottom: 0.5 }}>
-                  {activity.expectedOutcome}
-                </Typography>
-                <Typography variant="body2" sx={{ fontSize: "0.9rem" }}>
-                  <strong>Steps:</strong> {activity.steps.join(", ")}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Practice Problems:
-            </Typography>
-            <Box component="ol" sx={{ margin: 0, paddingLeft: 2.5 }}>
-              {content.activities.practiceProblems.map((problem, index) => (
-                <Typography
-                  key={index}
-                  component="li"
-                  variant="body2"
-                  sx={{ marginBottom: 0.5 }}
-                >
-                  {problem.problem} <em>(Answer: {problem.answer})</em>
-                </Typography>
-              ))}
-            </Box>
-          </Box>
-
-          <Box>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Group Work:
-            </Typography>
-            <Typography variant="body2" sx={{ marginBottom: 0.5 }}>
-              <strong>Task:</strong> {content.activities.groupWork.task}
-            </Typography>
-            <Typography variant="body2">
-              <strong>Success Criteria:</strong>{" "}
-              {content.activities.groupWork.successCriteria}
-            </Typography>
-          </Box>
-        </Paper>
-
-        {/* Wrap-up */}
-        <Paper sx={{ padding: 2, border: "1px solid #e0e0e0" }}>
-          <Typography
-            variant="h6"
-            sx={{ color: "primary.main", marginBottom: 2 }}
-          >
-            Wrap-up
-          </Typography>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Summary:
-            </Typography>
-            <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
-              {content.wrapUp.summary.map((point, index) => (
-                <Typography
-                  key={index}
-                  component="li"
-                  variant="body2"
-                  sx={{ marginBottom: 0.5 }}
-                >
-                  {point}
-                </Typography>
-              ))}
-            </Box>
-          </Box>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Engagement Questions:
-            </Typography>
-            <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
-              {content.wrapUp.engagementQuestions.map((question, index) => (
-                <Typography
-                  key={index}
-                  component="li"
-                  variant="body2"
-                  sx={{ marginBottom: 0.5 }}
-                >
-                  {question}
-                </Typography>
-              ))}
-            </Box>
-          </Box>
-
-          <Box>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Closure Activity:
-            </Typography>
-            <Typography variant="body2">
-              {content.wrapUp.closureActivity}
-            </Typography>
-          </Box>
-        </Paper>
-
-        {/* Quick Assessment */}
-        <Paper sx={{ padding: 2, border: "1px solid #e0e0e0" }}>
-          <Typography
-            variant="h6"
-            sx={{ color: "primary.main", marginBottom: 2 }}
-          >
-            Quick Assessment
-          </Typography>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Box component="ol" sx={{ margin: 0, paddingLeft: 2.5 }}>
-              {content.quickAssessment.fiveQandA.map((qa, index) => (
-                <Box key={index} component="li" sx={{ marginBottom: 1 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    Q: {qa.q}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{ fontStyle: "italic", color: "#666" }}
-                  >
-                    A: {qa.a}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Box>
-
-          <Typography variant="body2" sx={{ fontStyle: "italic" }}>
-            {content.quickAssessment.formatHints}
-          </Typography>
-        </Paper>
-
-        {/* Assessment */}
-        <Paper sx={{ padding: 2, border: "1px solid #e0e0e0" }}>
-          <Typography
-            variant="h6"
-            sx={{ color: "primary.main", marginBottom: 2 }}
-          >
-            Assessment
-          </Typography>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Exit Ticket:
-            </Typography>
-            <Typography variant="body2">
-              {content.assessment.exitTicket}
-            </Typography>
-          </Box>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Homework:
-            </Typography>
-            <Typography variant="body2">
-              {content.assessment.homework}
-            </Typography>
-          </Box>
-
-          <Box>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Marking Hints:
-            </Typography>
-            <Typography variant="body2">
-              {content.assessment.rubricOrMarkingHints}
-            </Typography>
-          </Box>
-        </Paper>
-
-        {/* Resources */}
-        <Paper sx={{ padding: 2, border: "1px solid #e0e0e0" }}>
-          <Typography
-            variant="h6"
-            sx={{ color: "primary.main", marginBottom: 2 }}
-          >
-            Resources
-          </Typography>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Materials:
-            </Typography>
-            <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
-              {content.resources.materials.map((material, index) => (
-                <Typography
-                  key={index}
-                  component="li"
-                  variant="body2"
-                  sx={{ marginBottom: 0.5 }}
-                >
-                  {material}
-                </Typography>
-              ))}
-            </Box>
-          </Box>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              References:
-            </Typography>
-            <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
-              {content.resources.references.map((reference, index) => (
-                <Typography
-                  key={index}
-                  component="li"
-                  variant="body2"
-                  sx={{ marginBottom: 0.5 }}
-                >
-                  {reference}
-                </Typography>
-              ))}
-            </Box>
-          </Box>
-
-          <Box>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Additional Reading/Media:
-            </Typography>
-            <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
-              {content.resources.additionalReadingOrMedia.map(
-                (reading, index) => (
-                  <Typography
-                    key={index}
-                    component="li"
-                    variant="body2"
-                    sx={{ marginBottom: 0.5 }}
-                  >
-                    {reading}
-                  </Typography>
-                )
-              )}
-            </Box>
-          </Box>
-        </Paper>
-
-        {/* Differentiation */}
-        <Paper sx={{ padding: 2, border: "1px solid #e0e0e0" }}>
-          <Typography
-            variant="h6"
-            sx={{ color: "primary.main", marginBottom: 2 }}
-          >
-            Differentiation Strategies
-          </Typography>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              For Struggling Learners:
-            </Typography>
-            <Typography variant="body2">
-              {content.differentiation.strugglingLearners}
-            </Typography>
-          </Box>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              For Advanced Students:
-            </Typography>
-            <Typography variant="body2">
-              {content.differentiation.advancedStudents}
-            </Typography>
-          </Box>
-
-          <Box>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, marginBottom: 1 }}
-            >
-              Multiple Learning Styles:
-            </Typography>
-            <Typography variant="body2">
-              {content.differentiation.multipleLearningStyles}
-            </Typography>
-          </Box>
-        </Paper>
-      </Box>
-    );
-  };
-
-  // Fallback HTML generator for when API returns HTML instead of structured data
-  const generateFallbackSessionDetailHTML = (
-    sessionPlan: SessionPlan,
-    chapter: Chapter
-  ): string => {
-    return `
-      <div style="font-family: 'Roboto', sans-serif;">
-        <div style="background-color: #e3f2fd; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
-          <h2 style="color: #1976d2; margin-bottom: 8px;">Session ${
-            sessionPlan.sessionNumber
-          }: ${sessionPlan.title}</h2>
-          <p style="margin-bottom: 8px;"><strong>Duration:</strong> ${
-            sessionPlan.duration
-          }</p>
-          <p style="margin-bottom: 16px;">${sessionPlan.summary}</p>
-        </div>
-        
-        <div style="margin-bottom: 24px;">
-          <h3 style="color: #1976d2; margin-bottom: 12px;">Learning Objectives</h3>
-          <ul style="margin: 0; padding-left: 20px;">
-            ${sessionPlan.objectives
-              .map((obj) => `<li style="margin-bottom: 8px;">${obj}</li>`)
-              .join("")}
-          </ul>
-        </div>
-        
-        <div style="margin-bottom: 24px;">
-          <h3 style="color: #1976d2; margin-bottom: 12px;">Introduction (5-10 minutes)</h3>
-          <p>Begin the session by connecting today's topic to real-world applications. Engage students with thought-provoking questions related to ${
-            chapter.title
-          }.</p>
-        </div>
-        
-        <div style="margin-bottom: 24px;">
-          <h3 style="color: #1976d2; margin-bottom: 12px;">Core Content (20-30 minutes)</h3>
-          <p>Detailed explanation of key concepts with step-by-step examples. Include visual aids and interactive demonstrations to enhance understanding.</p>
-        </div>
-        
-        <div style="margin-bottom: 24px;">
-          <h3 style="color: #1976d2; margin-bottom: 12px;">Activities (10-15 minutes)</h3>
-          <p>Hands-on exercises and group work to reinforce learning. Include problem-solving activities that allow students to apply the concepts.</p>
-        </div>
-        
-        <div style="margin-bottom: 24px;">
-          <h3 style="color: #1976d2; margin-bottom: 12px;">Assessment (5-10 minutes)</h3>
-          <p>Quick formative assessment to check student understanding. Include both individual and collaborative evaluation methods.</p>
-        </div>
-        
-        <div style="background-color: #f5f5f5; padding: 16px; border-radius: 8px; font-style: italic; color: #666;">
-          <strong>Note:</strong> This is a fallback lesson plan. For AI-generated detailed content, please try again or check your connection.
-        </div>
-      </div>
-    `;
   };
 
   return (
@@ -1435,7 +848,7 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
             </Box>
           ) : modalState.content ? (
             // Render new structured content
-            renderStructuredContent(modalState.content)
+            <DetailedLessonPlanRenderer content={modalState.content} />
           ) : modalState.htmlContent ? (
             // Fallback to HTML content
             <Box
@@ -1451,6 +864,13 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
           )}
         </Paper>
       </Modal>
+
+      <ErrorModal
+        open={errorModalState.open}
+        onClose={handleCloseErrorModal}
+        title={errorModalState.title}
+        message={errorModalState.message}
+      />
     </Box>
   );
 };

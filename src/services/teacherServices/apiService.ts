@@ -1,15 +1,6 @@
 import { SessionPlan } from "../../types";
 import { makePostRequest } from "../baseService";
-import {
-  generateFallbackQuestions,
-  generateFallbackSessionDetail,
-  generateFallbackSessionPlan,
-} from "../fallbackApis/fallbackApiCalls";
-import {
-  mapQuestionType,
-  transformQuestionsResponse,
-  transformSessionPlanResponse,
-} from "./helper";
+import { mapQuestionType } from "./helper";
 import {
   Question,
   QuestionGenerationRequest,
@@ -44,13 +35,10 @@ export const generateSessionPlan = async (
     );
 
     // Transform the response to match our SessionPlan interface and return
-    const sessionPlans = transformSessionPlanResponse(data);
-    return sessionPlans;
+    return (data as any).lessonPlan as SessionPlan[];
   } catch (error) {
     console.error("Error generating session plan:", error);
-    // Fallback: Generate mock session plans if API fails
-    const sessionPlans = generateFallbackSessionPlan();
-    return transformSessionPlanResponse(sessionPlans.data);
+    throw error;
   }
 };
 
@@ -83,13 +71,11 @@ export const generateSessionDetail = async (
     );
 
     // Return the structured session content as JSON/ Stringified JSON
-    const sessionContent = data.content;
+    const sessionContent = (data as { content: string }).content;
     return sessionContent;
   } catch (error) {
     console.error("Error generating session detail:", error);
-    // Fallback: Return structured content as JSON string
-    const fallbackResponse = generateFallbackSessionDetail();
-    return JSON.stringify(fallbackResponse.data.session_content);
+    throw error;
   }
 };
 
@@ -97,7 +83,7 @@ export const generateSessionDetail = async (
 export const generateQuestions = async (
   request: QuestionGenerationRequest
 ): Promise<Question[]> => {
-  const { classLevel, subject, chapter, questionRequirements } = request;
+  const { classLevel, subject, chapters, totalMarks } = request;
 
   const subjectName = subject.charAt(0).toUpperCase() + subject.slice(1);
   const className =
@@ -107,32 +93,69 @@ export const generateQuestions = async (
     const requestBody = {
       class_name: className,
       subject_name: subjectName,
-      chapters: [chapter.title],
-      question_requirements: questionRequirements,
+      chapters: chapters.map((chapter) => chapter.title),
+      total_marks: totalMarks,
     };
 
     const data = await makePostRequest("/api/generate-questions", requestBody);
 
-    // Transform the response to match our Question interface
-    const questions: Question[] = data.questions.questions.map((q: any) => ({
-      id: q.id.toString(),
-      questionText: q.questionText,
-      questionType: q.questionType,
-      type: mapQuestionType(q.questionType),
-      question: q.questionText, // For backward compatibility
-      options: q.options,
-      correctAnswer: q.correctAnswer,
-      marks: q.marks,
-      difficulty: q.difficultyLevel,
-      difficultyLevel: q.difficultyLevel,
-      chapterReference: q.chapterReference,
-      explanation: q.explanation,
-    }));
+    // Transform the new API response format
+    const questionPaper = (data as any).questions;
+    const questions: Question[] = [];
+    // Process each section
+    questionPaper.sections.forEach((section: any) => {
+      section.questions.forEach((questionItem: any) => {
+        if (questionItem.subQuestions) {
+          // Case-based question with sub-questions
+          const mainQuestion: Question = {
+            id: `${section.sectionName}_${questionItem.qNo}`,
+            questionText: questionItem.caseText || questionItem.questionText,
+            questionType: questionItem.type,
+            type: mapQuestionType(questionItem.type || ""),
+            question: questionItem.caseText || questionItem.questionText,
+            marks:
+              questionItem.marks ||
+              questionItem.subQuestions.reduce(
+                (sum: number, sq: any) => sum + sq.marks,
+                0
+              ),
+            difficulty: questionItem.difficulty,
+            difficultyLevel: questionItem.difficulty,
+            sectionName: section.sectionName,
+            sectionDescription: section.description,
+            caseText: questionItem.caseText,
+            subQuestions: questionItem.subQuestions.map((sq: any) => ({
+              subQNo: sq.subQNo,
+              questionText: sq.questionText,
+              marks: sq.marks,
+              answerHints: sq.answerHints,
+            })),
+          };
+          questions.push(mainQuestion);
+        } else {
+          // Regular question
+          const question: Question = {
+            id: `${section.sectionName}_${questionItem.qNo}`,
+            questionText: questionItem.questionText,
+            questionType: questionItem.type,
+            type: mapQuestionType(questionItem.type),
+            question: questionItem.questionText,
+            options: questionItem.options,
+            correctAnswer: questionItem.correctAnswer,
+            marks: questionItem.marks,
+            difficulty: questionItem.difficulty,
+            difficultyLevel: questionItem.difficulty,
+            sectionName: section.sectionName,
+            sectionDescription: section.description,
+          };
+          questions.push(question);
+        }
+      });
+    });
 
     return questions;
   } catch (error) {
     console.error("Error generating questions:", error);
-    // Fallback: Generate mock questions if API fails
-    return transformQuestionsResponse(generateFallbackQuestions());
+    throw error;
   }
 };

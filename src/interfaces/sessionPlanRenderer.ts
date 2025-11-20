@@ -98,6 +98,26 @@ export interface SessionDetailContent {
     materials: string[];
     references: string[];
     additionalReadingOrMedia: string[];
+    youtubeSearchKeywords: string[];
+    youtubeVideos: {
+      success: boolean;
+      data: Array<{
+        videoId: string;
+        title: string;
+        description: string;
+        channelTitle: string;
+        channelId: string;
+        publishedAt: string;
+        thumbnailUrl: string;
+        videoUrl: string;
+        embedUrl: string;
+        duration: string;
+        viewCount: string;
+        likeCount: string;
+      }>;
+      totalVideos: number;
+      keywordsSearched: string[];
+    };
   };
   differentiation: {
     strugglingLearners: string;
@@ -113,4 +133,10 @@ export interface DetailModalState {
   title: string;
   isLoading: boolean;
   exportMenuAnchor: HTMLElement | null;
+}
+
+export interface ErrorModalState {
+  open: boolean;
+  title: string;
+  message: string;
 }

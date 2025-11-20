@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { mockData } from "../mockData";
+import { subjectData } from "../subjectData";
 import {
   ClassLevel,
   Subject,
@@ -12,12 +12,16 @@ import { Box } from "@mui/material";
 import LeftSidebar from "./LeftSidebar";
 import MainContent from "./MainContent";
 import RightSidebar from "./RightSidebar";
+import ErrorModal from "./ErrorModal";
 import {
   generateSessionDetail,
   generateSessionPlan,
 } from "../services/teacherServices/apiService";
-import { canGenerateContent, getChapterOptions, getContentTitle } from "../utils/teacherUtils";
-
+import {
+  canGenerateContent,
+  getChapterOptions,
+  getContentTitle,
+} from "../utils/teacherUtils";
 
 function LessonPlanner() {
   const [state, setState] = useState<AppState>({
@@ -29,6 +33,11 @@ function LessonPlanner() {
     currentContent: null,
     isLoading: false,
     selectedSessionId: null,
+    errorModal: {
+      open: false,
+      title: "Error",
+      message: "",
+    },
   });
 
   const handleClassLevelChange = (classLevel: ClassLevel | "") => {
@@ -55,7 +64,8 @@ function LessonPlanner() {
   const handleChapterChange = (chapterId: string) => {
     if (chapterId && state.selectedClass && state.selectedSubject) {
       const chapters =
-        mockData.chapters[state.selectedClass]?.[state.selectedSubject] || [];
+        subjectData.chapters[state.selectedClass]?.[state.selectedSubject] ||
+        [];
       const chapter = chapters.find((ch: Chapter) => ch.id === chapterId);
       setState((prev) => ({
         ...prev,
@@ -78,6 +88,16 @@ function LessonPlanner() {
     setState((prev) => ({
       ...prev,
       selectedTopic: topic || null,
+    }));
+  };
+
+  const handleCloseErrorModal = () => {
+    setState((prev) => ({
+      ...prev,
+      errorModal: {
+        ...prev.errorModal!,
+        open: false,
+      },
     }));
   };
 
@@ -175,15 +195,27 @@ function LessonPlanner() {
       setState((prev) => ({
         ...prev,
         isLoading: false,
+        errorModal: {
+          open: true,
+          title: "Session Loading Failed",
+          message:
+            "Something failed, please try again. If the same problem occurs, please contact administrator.",
+        },
       }));
     }
   };
 
   const handleGenerateContent = async (): Promise<void> => {
     if (!canGenerateContent(state)) {
-      alert(
-        `Please select class, subject, chapter, and planned sessions before generating content.`
-      );
+      setState((prev) => ({
+        ...prev,
+        errorModal: {
+          open: true,
+          title: "Validation Error",
+          message:
+            "Please select class, subject, chapter, and planned sessions before generating content.",
+        },
+      }));
       return;
     }
 
@@ -222,54 +254,71 @@ function LessonPlanner() {
       setState((prev) => ({ ...prev, currentContent: content }));
     } catch (error) {
       console.error("Error generating content:", error);
-      alert("Error generating content. Please try again.");
+      setState((prev) => ({
+        ...prev,
+        errorModal: {
+          open: true,
+          title: "Content Generation Failed",
+          message:
+            "Something failed, please try again. If the same problem occurs, please contact administrator.",
+        },
+      }));
     } finally {
       setState((prev) => ({ ...prev, isLoading: false }));
     }
   };
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        gap: 3,
-        flexDirection: { xs: "column", md: "row" },
-      }}
-    >
-      <LeftSidebar
-        selectedClass={state.selectedClass}
-        selectedSubject={state.selectedSubject}
-        selectedChapter={state.selectedChapter}
-        plannedSessions={state.plannedSessions}
-        isLoading={state.isLoading}
-        chapterOptions={getChapterOptions(
-          state.selectedClass,
-          state.selectedSubject
-        )}
-        sessionPlans={state.currentContent?.sessionPlans || []}
-        selectedSessionId={state.selectedSessionId}
-        onClassLevelChange={handleClassLevelChange}
-        onSubjectChange={handleSubjectChange}
-        onChapterChange={handleChapterChange}
-        onPlannedSessionsChange={handlePlannedSessionsChange}
-        onGenerateContent={handleGenerateContent}
-        onSessionSelect={handleSessionSelect}
+    <>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 3,
+          flexDirection: { xs: "column", md: "row" },
+        }}
+      >
+        <LeftSidebar
+          selectedClass={state.selectedClass}
+          selectedSubject={state.selectedSubject}
+          selectedChapter={state.selectedChapter}
+          plannedSessions={state.plannedSessions}
+          isLoading={state.isLoading}
+          chapterOptions={getChapterOptions(
+            state.selectedClass,
+            state.selectedSubject
+          )}
+          sessionPlans={state.currentContent?.sessionPlans || []}
+          selectedSessionId={state.selectedSessionId}
+          onClassLevelChange={handleClassLevelChange}
+          onSubjectChange={handleSubjectChange}
+          onChapterChange={handleChapterChange}
+          onPlannedSessionsChange={handlePlannedSessionsChange}
+          onGenerateContent={handleGenerateContent}
+          onSessionSelect={handleSessionSelect}
+        />
+        <MainContent
+          title={getContentTitle(state)}
+          isLoading={state.isLoading}
+          currentContent={state.currentContent}
+          userType="teacher" // Always teacher for lesson planning
+          classLevel={state.selectedClass}
+          subject={state.selectedSubject}
+          chapter={state.selectedChapter}
+        />
+        <RightSidebar
+          topics={state.selectedChapter?.topics || []}
+          selectedTopicId={state.selectedTopic?.id || null}
+          onTopicSelection={handleTopicSelection}
+        />
+      </Box>
+
+      <ErrorModal
+        open={state.errorModal?.open || false}
+        onClose={handleCloseErrorModal}
+        title={state.errorModal?.title || "Error"}
+        message={state.errorModal?.message || ""}
       />
-      <MainContent
-        title={getContentTitle(state)}
-        isLoading={state.isLoading}
-        currentContent={state.currentContent}
-        userType="teacher" // Always teacher for lesson planning
-        classLevel={state.selectedClass}
-        subject={state.selectedSubject}
-        chapter={state.selectedChapter}
-      />
-      <RightSidebar
-        topics={state.selectedChapter?.topics || []}
-        selectedTopicId={state.selectedTopic?.id || null}
-        onTopicSelection={handleTopicSelection}
-      />
-    </Box>
+    </>
   );
 }
 

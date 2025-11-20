@@ -37,21 +37,23 @@ export const transformSessionDetailsResponse = (data: any): any => {
   return {};
 };
 
-export const mapQuestionType = (questionType: string): Question["type"] => {
+export const mapQuestionType = (questionType: string): string => {
   switch (questionType.toLowerCase()) {
     case "mcq":
       return "multiple-choice";
-    case "short answer":
+    case "vsa":
+      return "very-short-answer";
+    case "sa":
       return "short-answer";
-    case "long answer":
+    case "la":
       return "long-answer";
-    case "application":
-      return "long-answer"; // Map application to long-answer
+    case "case":
+    case "cb":
+      return "case-based";
     default:
-      return "multiple-choice";
+      return "case-based";
   }
 };
-
 
 // Helper function to parse detail content that can come in multiple formats
 export const parseDetailContent = (

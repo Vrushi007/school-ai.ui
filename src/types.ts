@@ -2,7 +2,7 @@
 
 export type UserType = "teacher" | "student";
 
-export type ClassLevel = "8th" | "9th" | "10th";
+export type ClassLevel = string;
 
 export type Subject = string; // Allow any subject that exists in the data
 
@@ -65,9 +65,14 @@ export interface AppState {
   currentContent: GeneratedContent | null;
   isLoading: boolean;
   selectedSessionId: number | null;
+  errorModal?: {
+    open: boolean;
+    title: string;
+    message: string;
+  };
 }
 
 // Mock data structure for chapters and topics
-export interface MockData {
+export interface SubjectData {
   chapters: Record<ClassLevel, Record<string, Chapter[]>>; // Allow any subject keys
 }
