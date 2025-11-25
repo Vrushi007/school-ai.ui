@@ -37,6 +37,7 @@ import {
   copyToClipboard,
   sanitizeFilename,
 } from "../services/exportServices/sessionPlanExport";
+import RenderAIResponse from "./Student/RenderAIResponse";
 
 const StudentGetAnswers: React.FC = () => {
   const [chatState, setChatState] = useState<ChatState>({
@@ -268,16 +269,6 @@ const StudentGetAnswers: React.FC = () => {
     });
   };
 
-  // Format message content (handle line breaks and basic formatting)
-  const formatMessageContent = (content: string) => {
-    return content.split("\n").map((line, index) => (
-      <React.Fragment key={index}>
-        {line}
-        {index < content.split("\n").length - 1 && <br />}
-      </React.Fragment>
-    ));
-  };
-
   return (
     <Container maxWidth="lg" sx={{ py: 3 }}>
       <Paper
@@ -423,7 +414,7 @@ const StudentGetAnswers: React.FC = () => {
                     }}
                   >
                     <Typography variant="body1" sx={{ whiteSpace: "pre-wrap" }}>
-                      {formatMessageContent(message.content)}
+                      <RenderAIResponse content={message.content} />
                     </Typography>
                     <Typography
                       variant="caption"

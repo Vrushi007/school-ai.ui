@@ -10,6 +10,7 @@ import QuestionPaperGenerator from "./components/QuestionPaperGenerator";
 import StudentGetAnswers from "./components/StudentGetAnswers";
 import { ROUTES } from "./constants/common";
 import companyLogo from "../src/assets/images/company-logo.jpeg";
+import "katex/dist/katex.min.css";
 
 function App() {
   return (
