@@ -16,7 +16,7 @@ export const makePostRequest = async (endpoint: string, body: any) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(transformCamelCaseToSnakeCase(body)),
     });
 
     if (!response.ok) {
