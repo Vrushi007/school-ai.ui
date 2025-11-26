@@ -37,6 +37,7 @@ import {
   copyToClipboard,
   sanitizeFilename,
 } from "../services/exportServices/sessionPlanExport";
+import RenderAIResponse from "./Student/RenderAIResponse";
 
 const StudentGetAnswers: React.FC = () => {
   const [chatState, setChatState] = useState<ChatState>({
@@ -55,10 +56,19 @@ const StudentGetAnswers: React.FC = () => {
     message: "",
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesContainerRef.current) {
+      // Use requestAnimationFrame to ensure DOM has updated
+      requestAnimationFrame(() => {
+        if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTop =
+            messagesContainerRef.current.scrollHeight;
+        }
+      });
+    }
   }, [chatState.messages]);
 
   // Generate unique ID for messages
@@ -115,8 +125,8 @@ const StudentGetAnswers: React.FC = () => {
         ...prev,
         messages: [...prev.messages, assistantMessage],
         isLoading: false,
-        conversationId: response.conversation_id,
-        conversationHistory: response.updated_history,
+        conversationId: response.conversationId,
+        conversationHistory: response.updatedHistory,
       }));
     } catch (error) {
       console.error("Error getting answer:", error);
@@ -268,21 +278,16 @@ const StudentGetAnswers: React.FC = () => {
     });
   };
 
-  // Format message content (handle line breaks and basic formatting)
-  const formatMessageContent = (content: string) => {
-    return content.split("\n").map((line, index) => (
-      <React.Fragment key={index}>
-        {line}
-        {index < content.split("\n").length - 1 && <br />}
-      </React.Fragment>
-    ));
-  };
-
   return (
     <Container maxWidth="lg" sx={{ py: 3 }}>
       <Paper
         elevation={3}
-        sx={{ height: "80vh", display: "flex", flexDirection: "column" }}
+        sx={{
+          height: "calc(100vh - 200px)",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
       >
         {/* Header */}
         <Box
@@ -357,11 +362,15 @@ const StudentGetAnswers: React.FC = () => {
 
         {/* Messages Area */}
         <Box
+          ref={messagesContainerRef}
           sx={{
             flex: 1,
             overflowY: "auto",
+            overflowX: "hidden",
             p: 2,
             backgroundColor: "#f5f5f5",
+            position: "relative",
+            scrollBehavior: "smooth",
           }}
         >
           {chatState.messages.length === 0 ? (
@@ -423,7 +432,7 @@ const StudentGetAnswers: React.FC = () => {
                     }}
                   >
                     <Typography variant="body1" sx={{ whiteSpace: "pre-wrap" }}>
-                      {formatMessageContent(message.content)}
+                      <RenderAIResponse content={message.content} />
                     </Typography>
                     <Typography
                       variant="caption"

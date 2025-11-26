@@ -461,3 +461,12 @@ body {
         border-top-color: transparent;
     }
 }
+
+.katex-display {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.katex-display > .katex {
+  display: inline !important;
+}

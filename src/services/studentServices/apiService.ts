@@ -15,7 +15,7 @@ export const askQuestion = async (
 ): Promise<AnswerResponse> => {
   try {
     const response = await makePostRequest("/api/get-answers", questionData);
-    return (response as any).response as AnswerResponse
+    return (response as any).response as AnswerResponse;
   } catch (error) {
     console.error("Error asking question:", error);
     throw new Error(
@@ -38,6 +38,6 @@ export const createQuestionRequest = (
 ): QuestionRequest => {
   return {
     question: question.trim(),
-    conversation_history: conversationHistory,
+    conversationHistory: conversationHistory,
   };
 };

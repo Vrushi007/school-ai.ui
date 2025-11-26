@@ -7,13 +7,13 @@ export interface ConversationMessage {
 
 export interface QuestionRequest {
   question: string;
-  conversation_history: ConversationMessage[];
+  conversationHistory: ConversationMessage[];
 }
 
 export interface AnswerResponse {
   answer: string;
-  conversation_id: string;
-  updated_history: ConversationMessage[];
+  conversationId: string;
+  updatedHistory: ConversationMessage[];
 }
 
 export interface ApiResponse {
