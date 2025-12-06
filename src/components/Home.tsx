@@ -1,7 +1,7 @@
 import React from "react";
 import { Paper, Typography, Box, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { School, Person, Groups } from "@mui/icons-material";
+import { School, Person, Groups, AdminPanelSettings } from "@mui/icons-material";
 import { ROUTES } from "../constants/common";
 
 function Home() {
@@ -13,6 +13,10 @@ function Home() {
 
   const handleStudentClick = () => {
     navigate(ROUTES.STUDENT_DASHBOARD);
+  };
+
+  const handleAdminClick = () => {
+    navigate(ROUTES.ADMIN);
   };
 
   return (
@@ -133,6 +137,52 @@ function Home() {
             variant="contained"
             size="large"
             color="secondary"
+            sx={{
+              mt: 2,
+              px: 4,
+              py: 2,
+            }}
+          >
+            Get Started
+          </Button>
+        </Paper>
+
+        {/* Admin Section */}
+        <Paper
+          elevation={3}
+          sx={{
+            p: 4,
+            minWidth: 350,
+            maxWidth: 400,
+            textAlign: "center",
+            cursor: "pointer",
+            transition: "transform 0.3s ease-in-out",
+            "&:hover": {
+              transform: "translateY(-5px)",
+              boxShadow: 6,
+            },
+          }}
+          onClick={handleAdminClick}
+        >
+          <AdminPanelSettings sx={{ fontSize: 60, color: "warning.main", mb: 3 }} />
+
+          <Typography
+            variant="h4"
+            component="h2"
+            gutterBottom
+            sx={{ fontWeight: 600 }}
+          >
+            Admin
+          </Typography>
+
+          <Typography variant="body1" color="text.secondary" paragraph>
+            Manage content, boards, syllabus, and educational data
+          </Typography>
+
+          <Button
+            variant="contained"
+            size="large"
+            color="warning"
             sx={{
               mt: 2,
               px: 4,

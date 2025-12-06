@@ -6,6 +6,7 @@ import LessonPlanner from "./components/LessonPlanner";
 import Home from "./components/Home";
 import Teacher from "./components/Teacher";
 import Student from "./components/Student";
+import Admin from "./components/Admin";
 import QuestionPaperGenerator from "./components/QuestionPaperGenerator";
 import StudentGetAnswers from "./components/StudentGetAnswers";
 import { ROUTES } from "./constants/common";
@@ -64,6 +65,7 @@ function App() {
         <Route path={ROUTES.HOME} element={<Home />} />
         <Route path={ROUTES.TEACHER_DASHBOARD} element={<Teacher />} />
         <Route path={ROUTES.STUDENT_DASHBOARD} element={<Student />} />
+        <Route path={ROUTES.ADMIN} element={<Admin />} />
         <Route path={ROUTES.LESSON_PLANNER} element={<LessonPlanner />} />
         <Route
           path={ROUTES.QUESTION_PAPER_GENERATOR}

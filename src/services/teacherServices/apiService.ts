@@ -1,5 +1,5 @@
 import { SessionPlan } from "../../types";
-import { makePostRequest } from "../baseService";
+import { API_AI_URL, makePostRequest } from "../baseService";
 import { mapQuestionType } from "./helper";
 import {
   Question,
@@ -30,7 +30,7 @@ export const generateSessionPlan = async (
     };
 
     const data = await makePostRequest(
-      "/api/generate-lesson-plan",
+      `${API_AI_URL}/api/generate-lesson-plan`,
       requestBody
     );
 
@@ -66,7 +66,7 @@ export const generateSessionDetail = async (
     };
 
     const data = await makePostRequest(
-      "/api/generate-detailed-content-for-session",
+      `${API_AI_URL}/api/generate-detailed-content-for-session`,
       requestBody
     );
 
@@ -97,7 +97,10 @@ export const generateQuestions = async (
       total_marks: totalMarks,
     };
 
-    const data = await makePostRequest("/api/generate-questions", requestBody);
+    const data = await makePostRequest(
+      `${API_AI_URL}/api/generate-questions`,
+      requestBody
+    );
 
     // Transform the new API response format
     const questionPaper = (data as any).questions;

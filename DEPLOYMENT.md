@@ -28,7 +28,7 @@ npm run deploy
 
 ```bash
 # Build with production environment variables
-REACT_APP_API_BASE_URL=https://school-ai-api.onrender.com npm run build
+REACT_APP_API_AI_URL=https://school-ai-api.onrender.com npm run build
 ```
 
 ## Post-Deployment
