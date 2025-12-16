@@ -28,7 +28,7 @@ export const makePostRequest = async (endpoint: string, body: any) => {
       throw new Error(result.error || "Server returned unsuccessful response");
     }
 
-    return transformSnakeCaseToCamelCase(result.data);
+    return transformSnakeCaseToCamelCase(result);
   } catch (error) {
     console.error("Server API call failed:", error);
     throw error;

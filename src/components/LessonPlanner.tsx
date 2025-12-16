@@ -1,12 +1,11 @@
-import React, { useState } from "react";
-import { subjectData } from "../subjectData";
+import React, { useState, useEffect } from "react";
 import {
-  ClassLevel,
-  Subject,
-  Chapter,
-  ContentRequest,
   GeneratedContent,
   AppState,
+  ContentBoard,
+  ContentClass,
+  ContentSubject,
+  ContentChapter,
 } from "../types";
 import { Box } from "@mui/material";
 import LeftSidebar from "./LeftSidebar";
@@ -18,13 +17,18 @@ import {
   generateSessionPlan,
 } from "../services/teacherServices/apiService";
 import {
-  canGenerateContent,
-  getChapterOptions,
-  getContentTitle,
-} from "../utils/teacherUtils";
+  getBoards,
+  getClassesByBoard,
+  getSubjectsByClass,
+  getChaptersBySubject,
+} from "../services/contentService";
 
 function LessonPlanner() {
   const [state, setState] = useState<AppState>({
+    selectedBoard: null,
+    selectedAPIClass: null,
+    selectedAPISubject: null,
+    selectedAPIChapter: null,
     selectedClass: null,
     selectedSubject: null,
     selectedChapter: null,
@@ -33,6 +37,10 @@ function LessonPlanner() {
     currentContent: null,
     isLoading: false,
     selectedSessionId: null,
+    boards: [],
+    classes: [],
+    subjects: [],
+    chapters: [],
     errorModal: {
       open: false,
       title: "Error",
@@ -40,54 +48,142 @@ function LessonPlanner() {
     },
   });
 
-  const handleClassLevelChange = (classLevel: ClassLevel | "") => {
-    setState((prev) => ({
-      ...prev,
-      selectedClass: classLevel || null,
-      selectedSubject: null,
-      selectedChapter: null,
-      selectedTopic: null,
-      plannedSessions: null,
-    }));
-  };
+  // Fetch boards on mount
+  useEffect(() => {
+    const fetchBoards = async () => {
+      try {
+        const boardsData = await getBoards();
+        setState((prev) => ({
+          ...prev,
+          boards: boardsData,
+        }));
+      } catch (error) {
+        console.error("Error fetching boards:", error);
+      }
+    };
+    fetchBoards();
+  }, []);
 
-  const handleSubjectChange = (subject: Subject | "") => {
-    setState((prev) => ({
-      ...prev,
-      selectedSubject: subject || null,
-      selectedChapter: null,
-      selectedTopic: null,
-      plannedSessions: null,
-    }));
-  };
-
-  const handleChapterChange = (chapterId: string) => {
-    if (chapterId && state.selectedClass && state.selectedSubject) {
-      const chapters =
-        subjectData.chapters[state.selectedClass]?.[state.selectedSubject] ||
-        [];
-      const chapter = chapters.find((ch: Chapter) => ch.id === chapterId);
+  // Fetch classes when board is selected
+  useEffect(() => {
+    if (!state.selectedBoard) {
       setState((prev) => ({
         ...prev,
-        selectedChapter: chapter || null,
-        selectedTopic: null,
-        plannedSessions: null,
+        classes: [],
+        selectedAPIClass: null,
+        selectedAPISubject: null,
+        selectedAPIChapter: null,
+        subjects: [],
+        chapters: [],
       }));
-    } else {
-      setState((prev) => ({
-        ...prev,
-        selectedChapter: null,
-        selectedTopic: null,
-        plannedSessions: null,
-      }));
+      return;
     }
-  };
 
-  const handleTopicSelection = (topicId: string) => {
-    const topic = state.selectedChapter?.topics.find((t) => t.id === topicId);
+    const fetchClasses = async () => {
+      try {
+        const classesData = await getClassesByBoard(state.selectedBoard!.id);
+        setState((prev) => ({
+          ...prev,
+          classes: classesData,
+          selectedAPIClass: null,
+          selectedAPISubject: null,
+          selectedAPIChapter: null,
+          subjects: [],
+          chapters: [],
+        }));
+      } catch (error) {
+        console.error("Error fetching classes:", error);
+      }
+    };
+    fetchClasses();
+  }, [state.selectedBoard]);
+
+  // Fetch subjects when class is selected
+  useEffect(() => {
+    if (!state.selectedAPIClass) {
+      setState((prev) => ({
+        ...prev,
+        subjects: [],
+        selectedAPISubject: null,
+        selectedAPIChapter: null,
+        chapters: [],
+      }));
+      return;
+    }
+
+    const fetchSubjects = async () => {
+      try {
+        const subjectsData = await getSubjectsByClass(
+          state.selectedAPIClass!.id
+        );
+        setState((prev) => ({
+          ...prev,
+          subjects: subjectsData,
+          selectedAPISubject: null,
+          selectedAPIChapter: null,
+          chapters: [],
+        }));
+      } catch (error) {
+        console.error("Error fetching subjects:", error);
+      }
+    };
+    fetchSubjects();
+  }, [state.selectedAPIClass]);
+
+  // Fetch chapters when subject is selected
+  useEffect(() => {
+    if (!state.selectedAPISubject) {
+      setState((prev) => ({
+        ...prev,
+        chapters: [],
+        selectedAPIChapter: null,
+      }));
+      return;
+    }
+
+    const fetchChapters = async () => {
+      try {
+        const chaptersData = await getChaptersBySubject(
+          state.selectedAPISubject!.id
+        );
+        setState((prev) => ({
+          ...prev,
+          chapters: chaptersData,
+          selectedAPIChapter: null,
+        }));
+      } catch (error) {
+        console.error("Error fetching chapters:", error);
+      }
+    };
+    fetchChapters();
+  }, [state.selectedAPISubject]);
+
+  // Handlers for Board selection
+  const handleBoardChange = (board: ContentBoard | null) => {
     setState((prev) => ({
       ...prev,
-      selectedTopic: topic || null,
+      selectedBoard: board,
+    }));
+  };
+
+  const handleAPIClassChange = (classItem: ContentClass | null) => {
+    setState((prev) => ({
+      ...prev,
+      selectedAPIClass: classItem,
+    }));
+  };
+
+  const handleAPISubjectChange = (subject: ContentSubject | null) => {
+    setState((prev) => ({
+      ...prev,
+      selectedAPISubject: subject,
+    }));
+  };
+
+  const handleAPIChapterChange = (chapter: ContentChapter | null) => {
+    setState((prev) => ({
+      ...prev,
+      selectedAPIChapter: chapter,
     }));
   };
 
@@ -99,6 +195,17 @@ function LessonPlanner() {
         open: false,
       },
     }));
+  };
+
+  const getContentTitle = (): string => {
+    if (state.currentContent) {
+      return state.currentContent.title;
+    }
+    return "Lesson Planner";
+  };
+
+  const handleTopicSelection = (): void => {
+    // Placeholder - topics are no longer needed with API-based chapters
   };
 
   const handlePlannedSessionsChange = (sessions: number | null) => {
@@ -206,14 +313,15 @@ function LessonPlanner() {
   };
 
   const handleGenerateContent = async (): Promise<void> => {
-    if (!canGenerateContent(state)) {
+    // Validate that all API selections are made
+    if (!state.selectedAPIChapter || !state.plannedSessions) {
       setState((prev) => ({
         ...prev,
         errorModal: {
           open: true,
           title: "Validation Error",
           message:
-            "Please select class, subject, chapter, and planned sessions before generating content.",
+            "Please select board, class, subject, chapter, and planned sessions before generating content.",
         },
       }));
       return;
@@ -221,31 +329,38 @@ function LessonPlanner() {
 
     setState((prev) => ({ ...prev, isLoading: true }));
 
-    const request: ContentRequest = {
-      userType: "teacher", // Always teacher for lesson planning
-      classLevel: state.selectedClass!,
-      subject: state.selectedSubject!,
-      chapterId: state.selectedChapter!.id,
-      topicId: state.selectedTopic?.id,
-    };
-
     try {
-      // Generate session plan using OpenAI since we have planned sessions
+      // For now, generate session plan using the API chapter data
+      // Pass the IDs from the selected entities to the API
       const sessionPlans = await generateSessionPlan({
-        userType: "teacher", // Always teacher for lesson planning
-        classLevel: state.selectedClass!,
-        subject: state.selectedSubject!,
-        chapter: state.selectedChapter!,
-        numberOfSessions: state.plannedSessions!,
-      });
+        userType: "teacher",
+        classLevel: state.selectedAPIClass?.name || "",
+        subject: state.selectedAPISubject?.name || "",
+        chapter: {
+          id: state.selectedAPIChapter.id.toString(),
+          title: state.selectedAPIChapter.title,
+          subject: state.selectedAPISubject?.name || "",
+          classLevel: state.selectedAPIClass?.name || "",
+          topics: [],
+          description: state.selectedAPIChapter.description || undefined,
+        },
+        numberOfSessions: state.plannedSessions,
+        // Pass the IDs for the new API
+        board_id: state.selectedBoard?.id,
+        class_id: state.selectedAPIClass?.id,
+        subject_id: state.selectedAPISubject?.id,
+      } as any);
 
       const content: GeneratedContent = {
         id: `session_plan_${Date.now()}`,
-        title: `${state.selectedChapter!.title} - Session Plan (${
-          state.plannedSessions
-        } Sessions)`,
-        content: "", // Content will be rendered by SessionPlanRenderer component
-        request,
+        title: `${state.selectedAPIChapter.title} - Session Plan (${state.plannedSessions} Sessions)`,
+        content: "",
+        request: {
+          userType: "teacher",
+          classLevel: state.selectedAPIClass?.name || "",
+          subject: state.selectedAPISubject?.name || "",
+          chapterId: state.selectedAPIChapter.id.toString(),
+        },
         createdAt: new Date(),
         type: "session-plan",
         sessionPlans,
@@ -278,38 +393,46 @@ function LessonPlanner() {
         }}
       >
         <LeftSidebar
-          selectedClass={state.selectedClass}
-          selectedSubject={state.selectedSubject}
-          selectedChapter={state.selectedChapter}
+          selectedBoard={state.selectedBoard}
+          selectedAPIClass={state.selectedAPIClass}
+          selectedAPISubject={state.selectedAPISubject}
+          selectedAPIChapter={state.selectedAPIChapter}
           plannedSessions={state.plannedSessions}
           isLoading={state.isLoading}
-          chapterOptions={getChapterOptions(
-            state.selectedClass,
-            state.selectedSubject
-          )}
           sessionPlans={state.currentContent?.sessionPlans || []}
           selectedSessionId={state.selectedSessionId}
-          onClassLevelChange={handleClassLevelChange}
-          onSubjectChange={handleSubjectChange}
-          onChapterChange={handleChapterChange}
+          boards={state.boards}
+          classes={state.classes}
+          subjects={state.subjects}
+          chapters={state.chapters}
+          onBoardChange={handleBoardChange}
+          onAPIClassChange={handleAPIClassChange}
+          onAPISubjectChange={handleAPISubjectChange}
+          onAPIChapterChange={handleAPIChapterChange}
           onPlannedSessionsChange={handlePlannedSessionsChange}
           onGenerateContent={handleGenerateContent}
           onSessionSelect={handleSessionSelect}
         />
         <MainContent
-          title={getContentTitle(state)}
+          title={getContentTitle()}
           isLoading={state.isLoading}
           currentContent={state.currentContent}
           userType="teacher" // Always teacher for lesson planning
-          classLevel={state.selectedClass}
-          subject={state.selectedSubject}
-          chapter={state.selectedChapter}
+          classLevel={state.selectedAPIClass?.name || ""}
+          subject={state.selectedAPISubject?.name || ""}
+          chapter={{
+            id: state.selectedAPIChapter?.id.toString() || "",
+            title: state.selectedAPIChapter?.title || "",
+            subject: state.selectedAPISubject?.name || "",
+            classLevel: state.selectedAPIClass?.name || "",
+            topics: [],
+          }}
         />
-        <RightSidebar
-          topics={state.selectedChapter?.topics || []}
-          selectedTopicId={state.selectedTopic?.id || null}
+        {/* <RightSidebar
+          topics={[]}
+          selectedTopicId={null}
           onTopicSelection={handleTopicSelection}
-        />
+        /> */}
       </Box>
 
       <ErrorModal

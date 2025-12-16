@@ -19,38 +19,60 @@ import {
   Divider,
 } from "@mui/material";
 import { Assignment, ExpandMore, PlayCircleOutline } from "@mui/icons-material";
-import { ClassLevel, Subject, Chapter, SessionPlan } from "../types";
-import { getClasses, getSubjectsForClass } from "../utils/teacherUtils";
+import {
+  SessionPlan,
+  ContentBoard,
+  ContentClass,
+  ContentSubject,
+  ContentChapter,
+} from "../types";
 
 interface LeftSidebarProps {
-  selectedClass: ClassLevel | null;
-  selectedSubject: Subject | null;
-  selectedChapter: Chapter | null;
+  // Content API Selection
+  selectedBoard: ContentBoard | null;
+  selectedAPIClass: ContentClass | null;
+  selectedAPISubject: ContentSubject | null;
+  selectedAPIChapter: ContentChapter | null;
+
   plannedSessions: number | null;
   isLoading: boolean;
-  chapterOptions: Chapter[];
   sessionPlans: SessionPlan[];
   selectedSessionId: number | null;
-  onClassLevelChange: (classLevel: ClassLevel | "") => void;
-  onSubjectChange: (subject: Subject | "") => void;
-  onChapterChange: (chapterId: string) => void;
+
+  // Content API Data
+  boards: ContentBoard[];
+  classes: ContentClass[];
+  subjects: ContentSubject[];
+  chapters: ContentChapter[];
+
+  // Handlers
+  onBoardChange: (board: ContentBoard | null) => void;
+  onAPIClassChange: (classItem: ContentClass | null) => void;
+  onAPISubjectChange: (subject: ContentSubject | null) => void;
+  onAPIChapterChange: (chapter: ContentChapter | null) => void;
+
   onPlannedSessionsChange: (sessions: number | null) => void;
   onGenerateContent: () => void;
   onSessionSelect: (sessionNumber: number) => void;
 }
 
 const LeftSidebar: React.FC<LeftSidebarProps> = ({
-  selectedClass,
-  selectedSubject,
-  selectedChapter,
+  selectedBoard,
+  selectedAPIClass,
+  selectedAPISubject,
+  selectedAPIChapter,
   plannedSessions,
   isLoading,
-  chapterOptions,
   sessionPlans,
   selectedSessionId,
-  onClassLevelChange,
-  onSubjectChange,
-  onChapterChange,
+  boards,
+  classes,
+  subjects,
+  chapters,
+  onBoardChange,
+  onAPIClassChange,
+  onAPISubjectChange,
+  onAPIChapterChange,
   onPlannedSessionsChange,
   onGenerateContent,
   onSessionSelect,
@@ -79,51 +101,86 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
           </AccordionSummary>
           <AccordionDetails sx={{ px: 3, pb: 3, pt: 0 }}>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              {/* New Dropdowns for Content API */}
               <FormControl fullWidth>
+                <InputLabel>Board</InputLabel>
+                <Select
+                  value={selectedBoard?.id || ""}
+                  label="Board"
+                  onChange={(e) => {
+                    const board = boards.find(
+                      (b) => b.id === Number(e.target.value)
+                    );
+                    onBoardChange(board || null);
+                  }}
+                >
+                  <MenuItem value="">Select Board</MenuItem>
+                  {boards.map((board) => (
+                    <MenuItem key={board.id} value={board.id}>
+                      {board.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl fullWidth disabled={!selectedBoard}>
                 <InputLabel>Class</InputLabel>
                 <Select
-                  value={selectedClass || ""}
+                  value={selectedAPIClass?.id || ""}
                   label="Class"
-                  onChange={(e) =>
-                    onClassLevelChange(e.target.value as ClassLevel)
-                  }
+                  onChange={(e) => {
+                    const classItem = classes.find(
+                      (c) => c.id === Number(e.target.value)
+                    );
+                    onAPIClassChange(classItem || null);
+                  }}
                 >
                   <MenuItem value="">Select Class</MenuItem>
-                  {getClasses().map((classLevel) => (
-                    <MenuItem key={classLevel} value={classLevel}>
-                      {classLevel}
+                  {classes.map((cls) => (
+                    <MenuItem key={cls.id} value={cls.id}>
+                      {cls.name}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
 
-              <FormControl fullWidth>
+              <FormControl fullWidth disabled={!selectedAPIClass}>
                 <InputLabel>Subject</InputLabel>
                 <Select
-                  value={selectedSubject || ""}
+                  value={selectedAPISubject?.id || ""}
                   label="Subject"
-                  onChange={(e) => onSubjectChange(e.target.value as Subject)}
+                  onChange={(e) => {
+                    const subject = subjects.find(
+                      (s) => s.id === Number(e.target.value)
+                    );
+                    onAPISubjectChange(subject || null);
+                  }}
                 >
                   <MenuItem value="">Select Subject</MenuItem>
-                  {getSubjectsForClass(selectedClass).map((subject) => (
-                    <MenuItem key={subject} value={subject}>
-                      {subject.charAt(0).toUpperCase() + subject.slice(1)}
+                  {subjects.map((subj) => (
+                    <MenuItem key={subj.id} value={subj.id}>
+                      {subj.name}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
 
-              <FormControl fullWidth>
+              <FormControl fullWidth disabled={!selectedAPISubject}>
                 <InputLabel>Chapter</InputLabel>
                 <Select
-                  value={selectedChapter?.id || ""}
+                  value={selectedAPIChapter?.id || ""}
                   label="Chapter"
-                  onChange={(e) => onChapterChange(e.target.value)}
+                  onChange={(e) => {
+                    const chapter = chapters.find(
+                      (c) => c.id === Number(e.target.value)
+                    );
+                    onAPIChapterChange(chapter || null);
+                  }}
                 >
                   <MenuItem value="">Select Chapter</MenuItem>
-                  {chapterOptions.map((chapter, index) => (
-                    <MenuItem key={chapter.id} value={chapter.id}>
-                      {index + 1}. {chapter.title}
+                  {chapters.map((chap, index) => (
+                    <MenuItem key={chap.id} value={chap.id}>
+                      {index + 1}. {chap.title}
                     </MenuItem>
                   ))}
                 </Select>

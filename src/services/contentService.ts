@@ -16,18 +16,9 @@ export interface Board {
   state_id: number | null;
 }
 
-export interface Syllabus {
-  id: number;
-  board_id: number;
-  name: string;
-  is_active: boolean;
-  state_id: number | null;
-  academic_year: string | null;
-}
-
 export interface Class {
   id: number;
-  syllabus_id: number;
+  board_id: number;
   name: string;
   display_order: number;
   is_active: boolean;
@@ -124,17 +115,8 @@ export const getBoards = async (skip = 0, limit = 100): Promise<Board[]> => {
   return fetchData<Board>(`/boards?skip=${skip}&limit=${limit}`);
 };
 
-export const getSyllabi = async (
-  skip = 0,
-  limit = 100
-): Promise<Syllabus[]> => {
-  return fetchData<Syllabus>(`/syllabus?skip=${skip}&limit=${limit}`);
-};
-
-export const getClassesBySyllabus = async (
-  syllabusId: number
-): Promise<Class[]> => {
-  return fetchData<Class>(`/classes/syllabus/${syllabusId}`);
+export const getClassesByBoard = async (boardId: number): Promise<Class[]> => {
+  return fetchData<Class>(`/classes/${boardId}`);
 };
 
 export const getSubjectsByClass = async (
@@ -215,12 +197,6 @@ export const createBoard = async (data: Omit<Board, "id">) =>
 export const updateBoard = async (id: number, data: Partial<Board>) =>
   makeRequest("PUT", `/boards/${id}`, data);
 
-export const createSyllabus = async (data: Omit<Syllabus, "id">) =>
-  makeRequest("POST", "/syllabus", data);
-
-export const updateSyllabus = async (id: number, data: Partial<Syllabus>) =>
-  makeRequest("PUT", `/syllabus/${id}`, data);
-
 export const createClass = async (data: Omit<Class, "id">) =>
   makeRequest("POST", "/classes", data);
 
@@ -280,11 +256,8 @@ export const ENTITIES: Record<string, EntityMetadata> = {
       { field: "state_name", header: "State", width: "120px" },
       { field: "is_active", header: "Active", width: "100px" },
     ],
-    childEntity: "syllabus",
-    childFetchFunction: async (boardId: number) => {
-      const allSyllabi = await getSyllabi();
-      return allSyllabi.filter((s) => s.board_id === boardId);
-    },
+    childEntity: "classes",
+    childFetchFunction: getClassesByBoard,
     parentIdField: "id",
     editFields: [
       { name: "name", label: "Board Name", required: true },
@@ -300,42 +273,13 @@ export const ENTITIES: Record<string, EntityMetadata> = {
       }
     },
   },
-  syllabus: {
-    name: "Syllabus",
-    endpoint: "/syllabus",
-    fetchFunction: getSyllabi,
-    columns: [
-      { field: "name", header: "Name" },
-      { field: "board_id", header: "Board ID", width: "100px" },
-      { field: "state_id", header: "State ID", width: "100px" },
-      { field: "academic_year", header: "Academic Year", width: "120px" },
-      { field: "is_active", header: "Active", width: "100px" },
-    ],
-    childEntity: "classes",
-    childFetchFunction: getClassesBySyllabus,
-    parentIdField: "id",
-    editFields: [
-      { name: "name", label: "Syllabus Name", required: true },
-      { name: "board_id", label: "Board ID", type: "number", required: true },
-      { name: "state_id", label: "State ID", type: "number" },
-      { name: "academic_year", label: "Academic Year" },
-      { name: "is_active", label: "Active", type: "checkbox" },
-    ],
-    onSubmit: async (data, isNew) => {
-      if (isNew) {
-        await createSyllabus(data as Omit<Syllabus, "id">);
-      } else {
-        await updateSyllabus(data.id, data);
-      }
-    },
-  },
   classes: {
     name: "Classes",
     endpoint: "/classes",
     fetchFunction: async () => [],
     columns: [
       { field: "name", header: "Name" },
-      { field: "syllabus_id", header: "Syllabus ID", width: "100px" },
+      { field: "board_id", header: "Board ID", width: "100px" },
       { field: "display_order", header: "Order", width: "100px" },
       { field: "is_active", header: "Active", width: "100px" },
     ],
@@ -345,8 +289,8 @@ export const ENTITIES: Record<string, EntityMetadata> = {
     editFields: [
       { name: "name", label: "Class Name", required: true },
       {
-        name: "syllabus_id",
-        label: "Syllabus ID",
+        name: "board_id",
+        label: "Board ID",
         type: "number",
         required: true,
       },

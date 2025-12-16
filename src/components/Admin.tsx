@@ -75,19 +75,12 @@ const Admin: React.FC = () => {
       icon: <School />,
       metadata: ENTITIES.boards,
     },
-    {
-      key: "syllabus",
-      label: "Syllabus",
-      icon: <MenuBook />,
-      metadata: ENTITIES.syllabus,
-    },
   ];
 
   const getEntityIcon = (key: string) => {
     const iconMap: Record<string, React.ReactElement> = {
       states: <Public />,
       boards: <School />,
-      syllabus: <MenuBook />,
       classes: <ClassIcon />,
       subjects: <SubjectIcon />,
       chapters: <Book />,

@@ -1,5 +1,5 @@
 import { SessionPlan } from "../../types";
-import { API_AI_URL, makePostRequest } from "../baseService";
+import { API_AI_URL, API_CONTENT_URL, makePostRequest } from "../baseService";
 import { mapQuestionType } from "./helper";
 import {
   Question,
@@ -14,28 +14,30 @@ const DEFAULT_SESSION_DURATION =
 export const generateSessionPlan = async (
   request: SessionPlanRequest
 ): Promise<SessionPlan[]> => {
-  const { classLevel, subject, chapter, numberOfSessions } = request;
+  const { chapter, numberOfSessions } = request;
 
-  const subjectName = subject.charAt(0).toUpperCase() + subject.slice(1);
-  const className =
-    classLevel === "8th" ? "8th" : classLevel === "9th" ? "9th" : "10th";
+  // Extract IDs from the chapter/subject/class data
+  // Assuming the chapter object has these IDs or we need to get them from the parent objects
+  const boardId = (request as any).board_id || (chapter as any).board_id;
+  const classId = (request as any).class_id || (chapter as any).class_id;
+  const subjectId = (request as any).subject_id || (chapter as any).subject_id;
+  const chapterId =
+    typeof chapter.id === "string" ? parseInt(chapter.id) : chapter.id;
 
   try {
-    const requestBody = {
-      subject_name: subjectName,
-      class_name: className,
-      chapter_title: chapter.title,
-      number_of_sessions: numberOfSessions,
-      default_session_duration: DEFAULT_SESSION_DURATION,
-    };
-
     const data = await makePostRequest(
-      `${API_AI_URL}/api/generate-lesson-plan`,
-      requestBody
+      `${API_CONTENT_URL}/lesson-plans/generate`,
+      {
+        board_id: boardId,
+        class_id: classId,
+        subject_id: subjectId,
+        chapter_id: chapterId,
+        planned_sessions: numberOfSessions,
+      }
     );
+    debugger;
 
-    // Transform the response to match our SessionPlan interface and return
-    return (data as any).lessonPlan as SessionPlan[];
+    return (data as { lessonPlan: SessionPlan[] }).lessonPlan;
   } catch (error) {
     console.error("Error generating session plan:", error);
     throw error;
