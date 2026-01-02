@@ -1,4 +1,4 @@
-import { API_CONTENT_URL } from "./baseService";
+import { API_CONTENT_URL, makeGetRequest } from "./baseService";
 
 // Type definitions for Content Service entities
 export interface State {
@@ -42,10 +42,46 @@ export interface Chapter {
 
 export interface KeyPoint {
   id: number;
-  chapter_id: number;
-  point: string;
-  order: number;
-  metadata_json: Record<string, any>;
+  code: string;
+  title: string;
+  section: string;
+  chapterId: number;
+  difficultyLevel: string;
+  cognitiveLevel: string;
+  skillIntent: string;
+  createdAt: string;
+  content: {
+    tags: string[];
+    board: string;
+    grade: number;
+    kpId: string;
+    chapter: string;
+    subject: string;
+    kpTitle: string;
+    bloomLevel: string;
+    sectionTitle: string;
+    irtDifficulty: number;
+    kpDescription: string;
+    difficultyLabel: string;
+    prerequisiteKps: any[];
+    misconceptionTags: string[];
+    assessmentExamples: string[];
+    detailedExplanation: string;
+    autoGradingComponents: {
+      conceptualTriples: Array<{
+        triple: string;
+      }>;
+      assessmentCriteria: Array<{
+        criterion: string;
+        weightage: number;
+      }>;
+      keyTermsAndSynonyms: Array<{
+        term: string;
+        synonyms: string[];
+      }>;
+    };
+    realWorldApplications: string[];
+  };
 }
 
 export interface Session {
@@ -85,82 +121,75 @@ export interface Question {
   metadata_json: Record<string, any> | null;
 }
 
-// Generic fetch function for GET requests
-const fetchData = async <T>(endpoint: string): Promise<T[]> => {
-  try {
-    const response = await fetch(`${API_CONTENT_URL}${endpoint}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status} ${response.statusText}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error(`Error fetching data from ${endpoint}:`, error);
-    throw error;
-  }
-};
-
 // API functions for each entity
 export const getStates = async (skip = 0, limit = 100): Promise<State[]> => {
-  return fetchData<State>(`/states?skip=${skip}&limit=${limit}`);
+  return makeGetRequest<State>(
+    `${API_CONTENT_URL}/states?skip=${skip}&limit=${limit}`
+  );
 };
 
 export const getBoards = async (skip = 0, limit = 100): Promise<Board[]> => {
-  return fetchData<Board>(`/boards?skip=${skip}&limit=${limit}`);
+  return makeGetRequest<Board>(
+    `${API_CONTENT_URL}/boards?skip=${skip}&limit=${limit}`
+  );
 };
 
 export const getClassesByBoard = async (boardId: number): Promise<Class[]> => {
-  return fetchData<Class>(`/classes/${boardId}`);
+  return makeGetRequest<Class>(`${API_CONTENT_URL}/classes/${boardId}`);
 };
 
 export const getSubjectsByClass = async (
   classId: number
 ): Promise<Subject[]> => {
-  return fetchData<Subject>(`/subjects/classes/${classId}`);
+  return makeGetRequest<Subject>(
+    `${API_CONTENT_URL}/subjects/classes/${classId}`
+  );
 };
 
 export const getChaptersBySubject = async (
   subjectId: number
 ): Promise<Chapter[]> => {
-  return fetchData<Chapter>(`/chapters/subjects/${subjectId}`);
+  return makeGetRequest<Chapter>(
+    `${API_CONTENT_URL}/chapters/subjects/${subjectId}`
+  );
 };
 
 export const getKeyPointsByChapter = async (
   chapterId: number
 ): Promise<KeyPoint[]> => {
-  return fetchData<KeyPoint>(`/key-points/chapters/${chapterId}`);
+  return makeGetRequest<KeyPoint>(
+    `${API_CONTENT_URL}/key-points/chapter/${chapterId}`
+  );
 };
 
 export const getSessionsByChapter = async (
   chapterId: number
 ): Promise<Session[]> => {
-  return fetchData<Session>(`/sessions/chapters/${chapterId}`);
+  return makeGetRequest<Session>(
+    `${API_CONTENT_URL}/sessions/chapters/${chapterId}`
+  );
 };
 
 export const getSessionKeyPointsBySession = async (
   sessionId: number
 ): Promise<SessionKeyPoint[]> => {
-  return fetchData<SessionKeyPoint>(
-    `/session-key-points/sessions/${sessionId}`
+  return makeGetRequest<SessionKeyPoint>(
+    `${API_CONTENT_URL}/session-key-points/sessions/${sessionId}`
   );
 };
 
 export const getSessionDetailsBySession = async (
   sessionId: number
 ): Promise<SessionDetails[]> => {
-  return fetchData<SessionDetails>(`/session-details/sessions/${sessionId}`);
+  return makeGetRequest<SessionDetails>(
+    `/session-details/sessions/${sessionId}`
+  );
 };
 
 export const getQuestionsByChapter = async (
   chapterId: number
 ): Promise<Question[]> => {
-  return fetchData<Question>(`/questions/chapters/${chapterId}`);
+  return makeGetRequest<Question>(`/questions/chapters/${chapterId}`);
 };
 
 // Generic API call function for POST/PUT requests

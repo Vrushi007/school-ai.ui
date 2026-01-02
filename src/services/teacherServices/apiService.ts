@@ -1,80 +1,27 @@
-import { SessionPlan } from "../../types";
 import { API_AI_URL, API_CONTENT_URL, makePostRequest } from "../baseService";
 import { mapQuestionType } from "./helper";
 import {
   Question,
   QuestionGenerationRequest,
-  SessionDetailRequest,
-  SessionPlanRequest,
+  KPGroupingRequest,
+  KPGroupingResponse,
+  SessionSummaryRequest,
+  SessionSummaryResponse,
+  SessionDetailContentRequest,
+  SessionDetailContentResponse,
 } from "./types";
-
-const DEFAULT_SESSION_DURATION =
-  process.env.REACT_APP_DEFAULT_SESSION_DURATION || "40 minutes";
-
-export const generateSessionPlan = async (
-  request: SessionPlanRequest
-): Promise<SessionPlan[]> => {
-  const { chapter, numberOfSessions } = request;
-
-  // Extract IDs from the chapter/subject/class data
-  // Assuming the chapter object has these IDs or we need to get them from the parent objects
-  const boardId = (request as any).board_id || (chapter as any).board_id;
-  const classId = (request as any).class_id || (chapter as any).class_id;
-  const subjectId = (request as any).subject_id || (chapter as any).subject_id;
-  const chapterId =
-    typeof chapter.id === "string" ? parseInt(chapter.id) : chapter.id;
-
-  try {
-    const data = await makePostRequest(
-      `${API_CONTENT_URL}/lesson-plans/generate`,
-      {
-        board_id: boardId,
-        class_id: classId,
-        subject_id: subjectId,
-        chapter_id: chapterId,
-        planned_sessions: numberOfSessions,
-      }
-    );
-    debugger;
-
-    return (data as { lessonPlan: SessionPlan[] }).lessonPlan;
-  } catch (error) {
-    console.error("Error generating session plan:", error);
-    throw error;
-  }
-};
 
 // Generate detailed content for a specific session
 export const generateSessionDetail = async (
-  request: SessionDetailRequest
-): Promise<string> => {
-  const { classLevel, subject, sessionPlan } = request;
-
-  const subjectName = subject.charAt(0).toUpperCase() + subject.slice(1);
-  const className =
-    classLevel === "8th" ? "8th" : classLevel === "9th" ? "9th" : "10th";
-
+  request: SessionDetailContentRequest
+): Promise<SessionDetailContentResponse> => {
   try {
-    const requestBody = {
-      session_data: {
-        session_number: sessionPlan.sessionNumber,
-        title: sessionPlan.title,
-        summary: sessionPlan.summary,
-        duration: sessionPlan.duration,
-        objectives: sessionPlan.objectives,
-      },
-      subject_name: subjectName,
-      class_name: className,
-    };
-
     const data = await makePostRequest(
-      `${API_AI_URL}/api/generate-detailed-content-for-session`,
-      requestBody
+      `${API_CONTENT_URL}/lesson-plans/get-session-detailed-content`,
+      request
     );
 
-    // Return the structured session content as JSON/ Stringified JSON
-    const sessionContent = (data as { content: string }).content;
-    return sessionContent;
+    return data as SessionDetailContentResponse;
   } catch (error) {
     console.error("Error generating session detail:", error);
     throw error;
@@ -161,6 +108,40 @@ export const generateQuestions = async (
     return questions;
   } catch (error) {
     console.error("Error generating questions:", error);
+    throw error;
+  }
+};
+
+// Group KPs into sessions
+export const groupKPsIntoSessions = async (
+  request: KPGroupingRequest
+): Promise<KPGroupingResponse> => {
+  try {
+    const data = await makePostRequest(
+      `${API_CONTENT_URL}/lesson-plans/group-kps-into-sessions`,
+      request
+    );
+
+    return data as KPGroupingResponse;
+  } catch (error) {
+    console.error("Error grouping KPs into sessions:", error);
+    throw error;
+  }
+};
+
+// Generate session summary
+export const generateSessionSummary = async (
+  request: SessionSummaryRequest
+): Promise<SessionSummaryResponse> => {
+  try {
+    const data = await makePostRequest(
+      `${API_CONTENT_URL}/lesson-plans/generate-session-summary`,
+      request
+    );
+
+    return data as SessionSummaryResponse;
+  } catch (error) {
+    console.error("Error generating session summary:", error);
     throw error;
   }
 };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Paper,
@@ -16,17 +16,18 @@ import {
 import {
   Public,
   School,
-  MenuBook,
   Class as ClassIcon,
   Subject as SubjectIcon,
   Book,
   Close,
   ChevronRight,
   Add,
+  SmartToy as SmartToyIcon,
 } from "@mui/icons-material";
-import EntityTable from "./EntityTable";
-import EditModal from "./EditModal";
-import { ENTITIES, EntityMetadata } from "../services/contentService";
+import EntityTable from "../EntityTable";
+import EditModal from "../EditModal";
+import { ENTITIES, EntityMetadata } from "../../services/contentService";
+import GenerateKPs from "./GenerateKPs";
 
 interface EntityItem {
   key: string;
@@ -55,6 +56,7 @@ interface ModalState {
 
 const Admin: React.FC = () => {
   const [panes, setPanes] = useState<Pane[]>([]);
+  const [selectedMenu, setSelectedMenu] = useState<string | null>(null);
   const [modal, setModal] = useState<ModalState>({
     open: false,
     entityKey: null,
@@ -89,8 +91,15 @@ const Admin: React.FC = () => {
   };
 
   const handleEntityClick = async (entityKey: string) => {
+    // Special handling for GenerateKPs
+    if (entityKey === "generateKPs") {
+      setSelectedMenu("generateKPs");
+      return;
+    }
+
     // Close all panes and start fresh
     setPanes([]);
+    setSelectedMenu(null);
 
     const paneId = `${entityKey}-${Date.now()}`;
     const entity = ENTITIES[entityKey];
@@ -300,130 +309,176 @@ const Admin: React.FC = () => {
                 </ListItemButton>
               </ListItem>
             ))}
+            <Divider />
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={() => handleEntityClick("generateKPs")}
+                selected={selectedMenu === "generateKPs"}
+                sx={{
+                  backgroundColor:
+                    selectedMenu === "generateKPs"
+                      ? "primary.light"
+                      : "inherit",
+                  color:
+                    selectedMenu === "generateKPs"
+                      ? "primary.contrastText"
+                      : "inherit",
+                  "&:hover": {
+                    backgroundColor: "primary.light",
+                    color: "primary.contrastText",
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                    width: "100%",
+                  }}
+                >
+                  <SmartToyIcon />
+                  <ListItemText primary="View/Generate KPs" />
+                </Box>
+              </ListItemButton>
+            </ListItem>
           </List>
         </Paper>
 
-        {/* Sliding Panes Container */}
-        <Box
-          sx={{
-            flexGrow: 1,
-            display: "flex",
-            gap: 2,
-            overflow: "auto",
-            pb: 2,
-          }}
-        >
-          {panes.length === 0 ? (
-            <Paper
-              elevation={3}
-              sx={{
-                p: 4,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                minWidth: 400,
-                flexGrow: 1,
-              }}
-            >
-              <Typography variant="h6" color="text.secondary">
-                Select an entity from the sidebar to view data
-              </Typography>
-            </Paper>
-          ) : (
-            panes.map((pane, index) => {
-              const entity = ENTITIES[pane.entityKey];
-              const hasChildren = !!entity.childEntity;
+        {/* Sliding Panes Container or GenerateKPs */}
+        {selectedMenu === "generateKPs" ? (
+          <Paper
+            elevation={3}
+            sx={{
+              flexGrow: 1,
+              overflow: "auto",
+              backgroundColor: "#f9f9f9",
+            }}
+          >
+            <GenerateKPs />
+          </Paper>
+        ) : (
+          <Box
+            sx={{
+              flexGrow: 1,
+              display: "flex",
+              gap: 2,
+              overflow: "auto",
+              pb: 2,
+            }}
+          >
+            {panes.length === 0 ? (
+              <Paper
+                elevation={3}
+                sx={{
+                  p: 4,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  minWidth: 400,
+                  flexGrow: 1,
+                }}
+              >
+                <Typography variant="h6" color="text.secondary">
+                  Select an entity from the sidebar to view data
+                </Typography>
+              </Paper>
+            ) : (
+              panes.map((pane, index) => {
+                const entity = ENTITIES[pane.entityKey];
+                const hasChildren = !!entity.childEntity;
 
-              return (
-                <Slide
-                  key={pane.id}
-                  direction="left"
-                  in={true}
-                  mountOnEnter
-                  unmountOnExit
-                >
-                  <Paper
-                    elevation={3}
-                    sx={{
-                      minWidth: 500,
-                      maxWidth: 600,
-                      flexShrink: 0,
-                      display: "flex",
-                      flexDirection: "column",
-                      maxHeight: "calc(100vh - 150px)",
-                    }}
+                return (
+                  <Slide
+                    key={pane.id}
+                    direction="left"
+                    in={true}
+                    mountOnEnter
+                    unmountOnExit
                   >
-                    <Box
+                    <Paper
+                      elevation={3}
                       sx={{
-                        p: 2,
-                        borderBottom: 1,
-                        borderColor: "divider",
+                        minWidth: 500,
+                        maxWidth: 600,
+                        flexShrink: 0,
                         display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        backgroundColor: "primary.main",
-                        color: "white",
+                        flexDirection: "column",
+                        maxHeight: "calc(100vh - 150px)",
                       }}
                     >
                       <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        sx={{
+                          p: 2,
+                          borderBottom: 1,
+                          borderColor: "divider",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          backgroundColor: "primary.main",
+                          color: "white",
+                        }}
                       >
-                        {getEntityIcon(pane.entityKey)}
-                        <Typography variant="h6" fontWeight={600}>
-                          {pane.title}
-                        </Typography>
-                      </Box>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
-                        <Button
-                          size="small"
-                          variant="contained"
-                          color="inherit"
-                          startIcon={<Add />}
-                          onClick={() => handleAddClick(index)}
-                          sx={{
-                            textTransform: "none",
-                            fontWeight: 500,
-                            color: "primary.main",
-                          }}
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >
-                          Add
-                        </Button>
-                        {index > 0 && (
-                          <IconButton
+                          {getEntityIcon(pane.entityKey)}
+                          <Typography variant="h6" fontWeight={600}>
+                            {pane.title}
+                          </Typography>
+                        </Box>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <Button
                             size="small"
-                            onClick={() => handleClosePane(index)}
-                            sx={{ color: "white" }}
+                            variant="contained"
+                            color="inherit"
+                            startIcon={<Add />}
+                            onClick={() => handleAddClick(index)}
+                            sx={{
+                              textTransform: "none",
+                              fontWeight: 500,
+                              color: "primary.main",
+                            }}
                           >
-                            <Close />
-                          </IconButton>
-                        )}
+                            Add
+                          </Button>
+                          {index > 0 && (
+                            <IconButton
+                              size="small"
+                              onClick={() => handleClosePane(index)}
+                              sx={{ color: "white" }}
+                            >
+                              <Close />
+                            </IconButton>
+                          )}
+                        </Box>
                       </Box>
-                    </Box>
-                    <Box sx={{ overflow: "auto", flexGrow: 1 }}>
-                      <EntityTable
-                        data={pane.data}
-                        columns={entity.columns}
-                        loading={pane.loading}
-                        error={pane.error}
-                        entityName={entity.name}
-                        onRowClick={
-                          hasChildren
-                            ? (row) => handleRowClick(index, row)
-                            : undefined
-                        }
-                        onEdit={(row) =>
-                          handleOpenEditModal(pane.entityKey, row)
-                        }
-                      />
-                    </Box>
-                  </Paper>
-                </Slide>
-              );
-            })
-          )}
-        </Box>
+                      <Box sx={{ overflow: "auto", flexGrow: 1 }}>
+                        <EntityTable
+                          data={pane.data}
+                          columns={entity.columns}
+                          loading={pane.loading}
+                          error={pane.error}
+                          entityName={entity.name}
+                          onRowClick={
+                            hasChildren
+                              ? (row) => handleRowClick(index, row)
+                              : undefined
+                          }
+                          onEdit={(row) =>
+                            handleOpenEditModal(pane.entityKey, row)
+                          }
+                        />
+                      </Box>
+                    </Paper>
+                  </Slide>
+                );
+              })
+            )}
+          </Box>
+        )}
       </Box>
 
       {modal.entityKey && (

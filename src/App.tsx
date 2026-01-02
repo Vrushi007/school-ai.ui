@@ -1,17 +1,18 @@
 import React from "react";
 import "./App.css";
 import { Box, Container, Paper, Typography } from "@mui/material";
-import { Routes, Route, Link, Navigate } from "react-router-dom";
-import LessonPlanner from "./components/LessonPlanner";
+import { Routes, Route, Link } from "react-router-dom";
+import LessonPlanner from "./components/Teacher/LessonPlanner/LessonPlanner";
 import Home from "./components/Home";
-import Teacher from "./components/Teacher";
-import Student from "./components/Student";
-import Admin from "./components/Admin";
-import QuestionPaperGenerator from "./components/QuestionPaperGenerator";
-import StudentGetAnswers from "./components/StudentGetAnswers";
+import Teacher from "./components/Teacher/Teacher";
 import { ROUTES } from "./constants/common";
 import companyLogo from "../src/assets/images/company-logo.jpeg";
 import "katex/dist/katex.min.css";
+import Admin from "./components/Admin/Admin";
+import Student from "./components/Student/Student";
+import QuestionPaperGenerator from "./components/Teacher/QuestionPaperGenerator/QuestionPaperGenerator";
+import StudentGetAnswers from "./components/Student/StudentGetAnswers";
+import ViewKnowledgePoints from "./components/Teacher/LessonPlanner/ViewKnowledgePoints";
 
 function App() {
   return (
@@ -22,6 +23,9 @@ function App() {
         sx={{
           mb: 3,
           background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          position: "sticky",
+          top: 0,
+          zIndex: 1100,
         }}
       >
         <Link to="" style={{ textDecoration: "none" }}>
@@ -70,6 +74,10 @@ function App() {
         <Route
           path={ROUTES.QUESTION_PAPER_GENERATOR}
           element={<QuestionPaperGenerator />}
+        />
+        <Route
+          path={ROUTES.KNOWLEDGE_POINTS}
+          element={<ViewKnowledgePoints />}
         />
         <Route
           path={ROUTES.STUDENT_GET_ANSWERS}

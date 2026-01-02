@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { subjectData } from "../subjectData";
-import { ClassLevel, Subject, Chapter } from "../types";
+import { ClassLevel, Subject, Chapter } from "../../../types";
 import { Box } from "@mui/material";
 import QuestionPaperLeftSidebar from "./QuestionPaperLeftSidebar";
 import QuestionPaperMainContent from "./QuestionPaperMainContent";
-import ErrorModal from "./ErrorModal";
-import { Question } from "../services/teacherServices/types";
-import { generateQuestions } from "../services/teacherServices/apiService";
+import { subjectData } from "../../../subjectData";
+import { generateQuestions } from "../../../services/teacherServices/apiService";
+import ErrorModal from "../../ErrorModal";
+import { Question } from "../../../services/teacherServices/types";
 
 interface QuestionPaperState {
   selectedClass: ClassLevel | null;

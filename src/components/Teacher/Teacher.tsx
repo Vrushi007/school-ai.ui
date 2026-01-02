@@ -1,8 +1,8 @@
 import React from "react";
 import { Paper, Typography, Box, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { MenuBook, Quiz } from "@mui/icons-material";
-import { ROUTES } from "../constants/common";
+import { MenuBook, Quiz, Psychology } from "@mui/icons-material";
+import { ROUTES } from "../../constants/common";
 
 function Teacher() {
   const navigate = useNavigate();
@@ -13,6 +13,10 @@ function Teacher() {
 
   const handleQuestionPaperClick = () => {
     navigate(ROUTES.QUESTION_PAPER_GENERATOR);
+  };
+
+  const handleKnowledgePointsClick = () => {
+    navigate(ROUTES.KNOWLEDGE_POINTS);
   };
 
   return (
@@ -134,6 +138,53 @@ function Teacher() {
             }}
           >
             Generate Questions
+          </Button>
+        </Paper>
+
+        {/* View Knowledge Points Section */}
+        <Paper
+          elevation={3}
+          sx={{
+            p: 4,
+            minWidth: 350,
+            maxWidth: 400,
+            textAlign: "center",
+            cursor: "pointer",
+            transition: "transform 0.3s ease-in-out",
+            "&:hover": {
+              transform: "translateY(-5px)",
+              boxShadow: 6,
+            },
+          }}
+          onClick={handleKnowledgePointsClick}
+        >
+          <Psychology sx={{ fontSize: 60, color: "success.main", mb: 3 }} />
+
+          <Typography
+            variant="h4"
+            component="h2"
+            gutterBottom
+            sx={{ fontWeight: 600 }}
+          >
+            View Knowledge Points
+          </Typography>
+
+          <Typography variant="body1" color="text.secondary" paragraph>
+            Browse and view existing knowledge points across different subjects
+            and chapters
+          </Typography>
+
+          <Button
+            variant="contained"
+            size="large"
+            color="success"
+            sx={{
+              mt: 2,
+              px: 4,
+              py: 2,
+            }}
+          >
+            View Knowledge Points
           </Button>
         </Paper>
       </Box>

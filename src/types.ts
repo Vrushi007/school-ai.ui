@@ -1,6 +1,5 @@
 // Type definitions for the educational platform
-
-export type UserType = "teacher" | "student";
+import { GroupedSession } from "./services/teacherServices/types";
 
 export type ClassLevel = string;
 
@@ -41,7 +40,6 @@ export interface ContentChapter {
 }
 
 export interface User {
-  type: UserType;
   name?: string;
 }
 
@@ -64,30 +62,10 @@ export interface Topic {
 }
 
 export interface ContentRequest {
-  userType: UserType;
   classLevel: ClassLevel;
   subject: Subject;
   chapterId: string;
   topicId?: string;
-}
-
-export interface SessionPlan {
-  sessionNumber: number;
-  title: string;
-  summary: string;
-  duration: string;
-  objectives: string[];
-  detailContent?: string; // Cache for detailed content from API
-}
-
-export interface GeneratedContent {
-  id: string;
-  title: string;
-  content: string;
-  request: ContentRequest;
-  createdAt: Date;
-  type: "explanation" | "example" | "exercise" | "summary" | "session-plan";
-  sessionPlans?: SessionPlan[];
 }
 
 export interface AppState {
@@ -104,9 +82,9 @@ export interface AppState {
   selectedTopic: Topic | null;
 
   plannedSessions: number | null;
-  currentContent: GeneratedContent | null;
   isLoading: boolean;
   selectedSessionId: number | null;
+  groupedSessions: GroupedSession[] | null;
   errorModal?: {
     open: boolean;
     title: string;

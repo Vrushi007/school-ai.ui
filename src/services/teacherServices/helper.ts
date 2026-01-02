@@ -1,16 +1,5 @@
 import { SessionDetailContent } from "../../interfaces";
-import { SessionPlan } from "../../types";
 import { Question } from "./types";
-
-export const transformSessionPlanResponse = (data: any): SessionPlan[] => {
-  return data.lesson_plan.map((session: any) => ({
-    sessionNumber: session.sessionNumber,
-    title: session.title,
-    summary: session.summary,
-    duration: session.duration,
-    objectives: session.objectives,
-  }));
-};
 
 export const transformQuestionsResponse = (data: any): Question[] => {
   const questionsFromResponse = data.data.questions.questions;
@@ -33,7 +22,6 @@ export const transformQuestionsResponse = (data: any): Question[] => {
 
 export const transformSessionDetailsResponse = (data: any): any => {
   console.log(data);
-  debugger;
   return {};
 };
 
