@@ -17,8 +17,8 @@ import {
   ListItemText,
 } from "@mui/material";
 import { Quiz, ExpandMore } from "@mui/icons-material";
-import { ClassLevel, Subject, Chapter } from "../types";
-import { getClasses, getSubjectsForClass } from "../utils/teacherUtils";
+import { ClassLevel, Subject, Chapter } from "../../../types";
+import { getClasses, getSubjectsForClass } from "../../../utils/teacherUtils";
 
 interface QuestionPaperLeftSidebarProps {
   selectedClass: ClassLevel | null;
@@ -158,7 +158,9 @@ const QuestionPaperLeftSidebar: React.FC<QuestionPaperLeftSidebarProps> = ({
                 label="Total Marks"
                 placeholder="Enter total marks for the question paper"
                 value={totalMarks || ""}
-                onChange={(e) => onTotalMarksChange(parseInt(e.target.value) || 0)}
+                onChange={(e) =>
+                  onTotalMarksChange(parseInt(e.target.value) || 0)
+                }
                 variant="outlined"
                 helperText="Enter the total marks for the question paper"
                 inputProps={{ min: 1 }}

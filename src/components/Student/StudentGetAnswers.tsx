@@ -15,7 +15,6 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
-import ErrorModal from "./ErrorModal";
 import {
   Send,
   Psychology,
@@ -29,15 +28,16 @@ import {
 import {
   askQuestion,
   createQuestionRequest,
-} from "../services/studentServices/apiService";
-import { ChatMessage, ChatState } from "../services/studentServices/types";
-import { ErrorModalState } from "../interfaces/sessionPlanRenderer";
+} from "../../services/studentServices/apiService";
+import { ChatMessage, ChatState } from "../../services/studentServices/types";
+import { ErrorModalState } from "../../interfaces/sessionPlanRenderer";
 import {
   downloadAsPDF,
   copyToClipboard,
   sanitizeFilename,
-} from "../services/exportServices/sessionPlanExport";
-import RenderAIResponse from "./Student/RenderAIResponse";
+} from "../../services/exportServices/sessionPlanExport";
+import RenderAIResponse from "./RenderAIResponse";
+import ErrorModal from "../ErrorModal";
 
 const StudentGetAnswers: React.FC = () => {
   const [chatState, setChatState] = useState<ChatState>({
