@@ -24,13 +24,13 @@ import {
   PictureAsPdf,
   ContentCopy,
 } from "@mui/icons-material";
-import { Chapter } from "../types";
-import { Question } from "../services/teacherServices/types";
 import {
   downloadAsPDF,
   copyToClipboard,
   sanitizeFilename,
-} from "../services/exportServices/sessionPlanExport";
+} from "../../../services/exportServices/sessionPlanExport";
+import { Chapter } from "../../../types";
+import { Question } from "../../../services/teacherServices/types";
 
 interface QuestionPaperMainContentProps {
   isLoading: boolean;

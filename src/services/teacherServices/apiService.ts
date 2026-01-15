@@ -1,78 +1,27 @@
-import { SessionPlan } from "../../types";
-import { makePostRequest } from "../baseService";
+import { API_AI_URL, API_CONTENT_URL, makePostRequest } from "../baseService";
 import { mapQuestionType } from "./helper";
 import {
   Question,
   QuestionGenerationRequest,
-  SessionDetailRequest,
-  SessionPlanRequest,
+  KPGroupingRequest,
+  KPGroupingResponse,
+  SessionSummaryRequest,
+  SessionSummaryResponse,
+  SessionDetailContentRequest,
+  SessionDetailContentResponse,
 } from "./types";
-
-const DEFAULT_SESSION_DURATION =
-  process.env.REACT_APP_DEFAULT_SESSION_DURATION || "40 minutes";
-
-export const generateSessionPlan = async (
-  request: SessionPlanRequest
-): Promise<SessionPlan[]> => {
-  const { classLevel, subject, chapter, numberOfSessions } = request;
-
-  const subjectName = subject.charAt(0).toUpperCase() + subject.slice(1);
-  const className =
-    classLevel === "8th" ? "8th" : classLevel === "9th" ? "9th" : "10th";
-
-  try {
-    const requestBody = {
-      subject_name: subjectName,
-      class_name: className,
-      chapter_title: chapter.title,
-      number_of_sessions: numberOfSessions,
-      default_session_duration: DEFAULT_SESSION_DURATION,
-    };
-
-    const data = await makePostRequest(
-      "/api/generate-lesson-plan",
-      requestBody
-    );
-
-    // Transform the response to match our SessionPlan interface and return
-    return (data as any).lessonPlan as SessionPlan[];
-  } catch (error) {
-    console.error("Error generating session plan:", error);
-    throw error;
-  }
-};
 
 // Generate detailed content for a specific session
 export const generateSessionDetail = async (
-  request: SessionDetailRequest
-): Promise<string> => {
-  const { classLevel, subject, sessionPlan } = request;
-
-  const subjectName = subject.charAt(0).toUpperCase() + subject.slice(1);
-  const className =
-    classLevel === "8th" ? "8th" : classLevel === "9th" ? "9th" : "10th";
-
+  request: SessionDetailContentRequest
+): Promise<SessionDetailContentResponse> => {
   try {
-    const requestBody = {
-      session_data: {
-        session_number: sessionPlan.sessionNumber,
-        title: sessionPlan.title,
-        summary: sessionPlan.summary,
-        duration: sessionPlan.duration,
-        objectives: sessionPlan.objectives,
-      },
-      subject_name: subjectName,
-      class_name: className,
-    };
-
     const data = await makePostRequest(
-      "/api/generate-detailed-content-for-session",
-      requestBody
+      `${API_CONTENT_URL}/lesson-plans/get-session-detailed-content`,
+      request
     );
 
-    // Return the structured session content as JSON/ Stringified JSON
-    const sessionContent = (data as { content: string }).content;
-    return sessionContent;
+    return data as SessionDetailContentResponse;
   } catch (error) {
     console.error("Error generating session detail:", error);
     throw error;
@@ -97,7 +46,10 @@ export const generateQuestions = async (
       total_marks: totalMarks,
     };
 
-    const data = await makePostRequest("/api/generate-questions", requestBody);
+    const data = await makePostRequest(
+      `${API_AI_URL}/api/generate-questions`,
+      requestBody
+    );
 
     // Transform the new API response format
     const questionPaper = (data as any).questions;
@@ -156,6 +108,40 @@ export const generateQuestions = async (
     return questions;
   } catch (error) {
     console.error("Error generating questions:", error);
+    throw error;
+  }
+};
+
+// Group KPs into sessions
+export const groupKPsIntoSessions = async (
+  request: KPGroupingRequest
+): Promise<KPGroupingResponse> => {
+  try {
+    const data = await makePostRequest(
+      `${API_CONTENT_URL}/lesson-plans/group-kps-into-sessions`,
+      request
+    );
+
+    return data as KPGroupingResponse;
+  } catch (error) {
+    console.error("Error grouping KPs into sessions:", error);
+    throw error;
+  }
+};
+
+// Generate session summary
+export const generateSessionSummary = async (
+  request: SessionSummaryRequest
+): Promise<SessionSummaryResponse> => {
+  try {
+    const data = await makePostRequest(
+      `${API_CONTENT_URL}/lesson-plans/generate-session-summary`,
+      request
+    );
+
+    return data as SessionSummaryResponse;
+  } catch (error) {
+    console.error("Error generating session summary:", error);
     throw error;
   }
 };

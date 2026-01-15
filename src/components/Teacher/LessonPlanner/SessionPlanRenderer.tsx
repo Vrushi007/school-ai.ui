@@ -19,25 +19,22 @@ import {
   ContentCopy,
   PictureAsPdf,
 } from "@mui/icons-material";
-import { SessionPlan } from "../types";
-import { generateSessionDetail } from "../services/teacherServices/apiService";
-import ErrorModal from "./ErrorModal";
+import { generateSessionDetail } from "../../../services/teacherServices/apiService";
+import ErrorModal from "../../ErrorModal";
 import {
   downloadAsPDF,
   copyToClipboard,
-} from "../services/exportServices/sessionPlanExport";
+} from "../../../services/exportServices/sessionPlanExport";
 import {
   SessionPlanRendererProps,
   SessionDetailContent,
   DetailModalState,
-} from "../interfaces";
-import { ErrorModalState } from "../interfaces/sessionPlanRenderer";
-import { parseDetailContent } from "../services/teacherServices/helper";
-import DetailedLessonPlanRenderer from "./SessionPlan/DetailedLessonPlanRenderer";
+} from "../../../interfaces";
+import { ErrorModalState } from "../../../interfaces/sessionPlanRenderer";
+import { parseDetailContent } from "../../../services/teacherServices/helper";
+import DetailedLessonPlanRenderer from "../../SessionPlan/DetailedLessonPlanRenderer";
 
 const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
-  sessionPlans,
-  userType,
   classLevel,
   subject,
   chapter,
@@ -55,97 +52,6 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
     title: "",
     message: "",
   });
-
-  const handleGetDetails = async (session: SessionPlan) => {
-    setModalState({
-      isOpen: true,
-      content: null,
-      title: `${session.title} - Detailed Lesson Plan`,
-      isLoading: !session.detailContent, // Don't show loading if we have cached content
-      exportMenuAnchor: null,
-    });
-
-    // Check if we already have cached detailed content
-    if (session.detailContent) {
-      // Try to parse the cached content using our robust parser
-      const parsedContent = parseDetailContent(session.detailContent);
-
-      if (parsedContent) {
-        setModalState((prev) => ({
-          ...prev,
-          content: parsedContent,
-          isLoading: false,
-        }));
-      } else {
-        // If parsing fails, treat as HTML (fallback format)
-        setModalState((prev) => ({
-          ...prev,
-          content: null,
-          htmlContent: session.detailContent!,
-          isLoading: false,
-        }));
-      }
-      return;
-    }
-
-    try {
-      const detailContent = await generateSessionDetail({
-        userType,
-        classLevel,
-        subject,
-        chapter,
-        sessionPlan: session,
-      });
-
-      // Cache the raw content in the session object
-      // Convert to string for caching if it's an object
-      session.detailContent =
-        typeof detailContent === "object"
-          ? JSON.stringify(detailContent)
-          : detailContent;
-
-      // Try to parse the content using our robust parser
-      const parsedContent = parseDetailContent(detailContent);
-
-      if (parsedContent) {
-        setModalState((prev) => ({
-          ...prev,
-          content: parsedContent,
-          isLoading: false,
-        }));
-      } else {
-        // If parsing fails, treat as HTML (fallback format)
-        const fallbackContent =
-          typeof detailContent === "string"
-            ? detailContent
-            : JSON.stringify(detailContent);
-        setModalState((prev) => ({
-          ...prev,
-          content: null,
-          htmlContent: fallbackContent,
-          isLoading: false,
-        }));
-      }
-    } catch (error) {
-      console.error("Error loading session details:", error);
-
-      // Close the detail modal and show error modal
-      setModalState({
-        isOpen: false,
-        content: null,
-        title: "",
-        isLoading: false,
-        exportMenuAnchor: null,
-      });
-
-      setErrorModalState({
-        open: true,
-        title: "Failed to Load Session Details",
-        message:
-          "Something failed, please try again. If the same problem occurs, please contact administrator.",
-      });
-    }
-  };
 
   const handleCloseModal = () => {
     setModalState({
@@ -653,76 +559,6 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
         </Typography>
       </Paper>
 
-      {/* Session Plans */}
-      {sessionPlans.map((session) => (
-        <Paper
-          key={session.sessionNumber}
-          sx={{
-            marginBottom: 3,
-            padding: 2.5,
-            border: "1px solid #e0e0e0",
-            backgroundColor: "#f9f9f9",
-          }}
-        >
-          <Typography
-            variant="h6"
-            sx={{ color: "primary.main", marginBottom: 1 }}
-          >
-            Session {session.sessionNumber}: {session.title}
-          </Typography>
-
-          <Typography variant="body2" sx={{ marginBottom: 1.5, color: "#666" }}>
-            <strong>Duration:</strong> {session.duration}
-          </Typography>
-
-          <Typography variant="body1" sx={{ marginBottom: 2, lineHeight: 1.6 }}>
-            {session.summary}
-          </Typography>
-
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography
-              variant="subtitle1"
-              sx={{
-                color: "primary.main",
-                marginBottom: 1,
-                fontSize: "1.1em",
-              }}
-            >
-              Learning Objectives:
-            </Typography>
-            <Box component="ul" sx={{ margin: 0, paddingLeft: 2.5 }}>
-              {session.objectives.map((obj, index) => (
-                <Typography
-                  key={index}
-                  component="li"
-                  variant="body2"
-                  sx={{ marginBottom: 0.5 }}
-                >
-                  {obj}
-                </Typography>
-              ))}
-            </Box>
-          </Box>
-
-          {/* Get Details Button */}
-          <Button
-            variant="contained"
-            startIcon={<MenuBook />}
-            onClick={() => handleGetDetails(session)}
-            sx={{
-              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              "&:hover": {
-                background: "linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)",
-              },
-            }}
-          >
-            {session.detailContent
-              ? "View Detailed Content"
-              : "Get Detailed Teaching Content"}
-          </Button>
-        </Paper>
-      ))}
-
       {/* Footer Note */}
       <Paper
         sx={{
@@ -873,49 +709,6 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
       />
     </Box>
   );
-};
-
-// Keep the original function for backward compatibility
-export const generateSessionPlanHTML = (
-  sessionPlans: SessionPlan[]
-): string => {
-  const sessionHTML = sessionPlans
-    .map(
-      (session) => `
-      <div style="margin-bottom: 24px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;">
-        <h3 style="color: #1976d2; margin-bottom: 8px;">Session ${
-          session.sessionNumber
-        }: ${session.title}</h3>
-        <p style="margin-bottom: 12px; color: #666;"><strong>Duration:</strong> ${
-          session.duration
-        }</p>
-        <p style="margin-bottom: 16px; line-height: 1.6;">${session.summary}</p>
-        <div>
-          <h4 style="color: #1976d2; margin-bottom: 8px; font-size: 1.1em;">Learning Objectives:</h4>
-          <ul style="margin: 0; padding-left: 20px;">
-            ${session.objectives
-              .map((obj) => `<li style="margin-bottom: 4px;">${obj}</li>`)
-              .join("")}
-          </ul>
-        </div>
-      </div>
-    `
-    )
-    .join("");
-
-  return `
-    <div style="font-family: 'Roboto', sans-serif;">
-      <p style="background-color: #e3f2fd; padding: 16px; border-radius: 8px; margin-bottom: 24px; font-weight: 500;">
-        📚 This session plan has been generated specifically for your teaching requirements using AI. 
-        Each session is designed to build upon previous learning and provide comprehensive coverage of the chapter.
-      </p>
-      ${sessionHTML}
-      <div style="margin-top: 24px; padding: 16px; background-color: #f5f5f5; border-radius: 8px; font-style: italic; color: #666;">
-        <strong>Note:</strong> This AI-generated session plan provides a structured framework for teaching. 
-        Feel free to adapt the content, duration, and activities based on your students' needs and classroom dynamics.
-      </div>
-    </div>
-  `;
 };
 
 export default SessionPlanRenderer;

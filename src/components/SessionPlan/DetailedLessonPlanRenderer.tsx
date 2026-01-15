@@ -6,6 +6,7 @@ const DetailedLessonPlanRenderer = ({
 }: {
   content: SessionDetailContent;
 }) => {
+  console.log(content);
   return (
     <Box sx={{ "& > *": { marginBottom: 3 } }}>
       {/* Session Header */}
@@ -199,7 +200,7 @@ const DetailedLessonPlanRenderer = ({
             Keywords:
           </Typography>
           <Typography variant="body2">
-            {content.boardWorkPlan.keywords.join(", ")}
+            {content.boardWorkPlan.keywords?.join(", ") || "N/A"}
           </Typography>
         </Box>
       </Paper>
@@ -330,7 +331,7 @@ const DetailedLessonPlanRenderer = ({
                 {activity.expectedOutcome}
               </Typography>
               <Typography variant="body2" sx={{ fontSize: "0.9rem" }}>
-                <strong>Steps:</strong> {activity.steps.join(", ")}
+                <strong>Steps:</strong> {activity.steps?.join(", ") || "N/A"}
               </Typography>
             </Box>
           ))}
@@ -812,7 +813,8 @@ const DetailedLessonPlanRenderer = ({
               >
                 Found {content.resources.youtubeVideos.totalVideos} videos for
                 keywords:{" "}
-                {content.resources.youtubeVideos.keywordsSearched.join(", ")}
+                {content.resources.youtubeVideos.keywordsSearched?.join(", ") ||
+                  "N/A"}
               </Typography>
             </Box>
           )}

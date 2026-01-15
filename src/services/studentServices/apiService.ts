@@ -1,4 +1,4 @@
-import { makePostRequest } from "../baseService";
+import { API_AI_URL, makePostRequest } from "../baseService";
 import { QuestionRequest, AnswerResponse } from "./types";
 
 /**
@@ -14,7 +14,10 @@ export const askQuestion = async (
   questionData: QuestionRequest
 ): Promise<AnswerResponse> => {
   try {
-    const response = await makePostRequest("/api/get-answers", questionData);
+    const response = await makePostRequest(
+      `${API_AI_URL}/api/get-answers`,
+      questionData
+    );
     return (response as any).response as AnswerResponse;
   } catch (error) {
     console.error("Error asking question:", error);

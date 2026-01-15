@@ -1,10 +1,8 @@
 // Interface definitions for SessionPlanRenderer component
 
-import { SessionPlan, UserType, ClassLevel, Subject, Chapter } from "../types";
+import { ClassLevel, Subject, Chapter } from "../types";
 
 export interface SessionPlanRendererProps {
-  sessionPlans: SessionPlan[];
-  userType: UserType;
   classLevel: ClassLevel;
   subject: Subject;
   chapter: Chapter;
