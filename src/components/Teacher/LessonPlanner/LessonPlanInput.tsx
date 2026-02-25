@@ -31,6 +31,7 @@ interface LessonPlanInputProps {
   plannedSessions: number | null;
   isLoading: boolean;
   selectedSessionId: number | null;
+  hasKPs: boolean;
 
   // Content API Data
   boards: ContentBoard[];
@@ -56,6 +57,7 @@ const LessonPlanInput: React.FC<LessonPlanInputProps> = ({
   plannedSessions,
   isLoading,
   selectedSessionId,
+  hasKPs,
   boards,
   classes,
   subjects,
@@ -242,7 +244,8 @@ const LessonPlanInput: React.FC<LessonPlanInputProps> = ({
                   !selectedAPIClass ||
                   !selectedAPISubject ||
                   !selectedAPIChapter ||
-                  !plannedSessions
+                  !plannedSessions ||
+                  !hasKPs
                 }
                 startIcon={
                   isLoading ? <CircularProgress size={20} /> : <Assignment />

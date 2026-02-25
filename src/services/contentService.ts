@@ -1,4 +1,9 @@
-import { API_CONTENT_URL, makeGetRequest } from "./baseService";
+import {
+  API_CONTENT_URL,
+  makeGetRequest,
+  makePostRequest,
+  makePutRequest,
+} from "./baseService";
 
 // Type definitions for Content Service entities
 export interface State {
@@ -11,32 +16,32 @@ export interface State {
 export interface Board {
   id: number;
   name: string;
-  is_active: boolean;
+  isActive: boolean;
   description: string;
-  state_id: number | null;
+  stateId: number | null;
 }
 
 export interface Class {
   id: number;
-  board_id: number;
+  boardId: number;
   name: string;
-  display_order: number;
-  is_active: boolean;
+  displayOrder: number;
+  isActive: boolean;
 }
 
 export interface Subject {
   id: number;
-  class_id: number;
+  classId: number;
   name: string;
-  is_active: boolean;
+  isActive: boolean;
 }
 
 export interface Chapter {
   id: number;
-  subject_id: number;
+  subjectId: number;
   title: string;
-  chapter_number: number;
-  is_active: boolean;
+  chapterNumber: number;
+  isActive: boolean;
   description: string | null;
 }
 
@@ -124,13 +129,13 @@ export interface Question {
 // API functions for each entity
 export const getStates = async (skip = 0, limit = 100): Promise<State[]> => {
   return makeGetRequest<State>(
-    `${API_CONTENT_URL}/states?skip=${skip}&limit=${limit}`
+    `${API_CONTENT_URL}/states?skip=${skip}&limit=${limit}`,
   );
 };
 
 export const getBoards = async (skip = 0, limit = 100): Promise<Board[]> => {
   return makeGetRequest<Board>(
-    `${API_CONTENT_URL}/boards?skip=${skip}&limit=${limit}`
+    `${API_CONTENT_URL}/boards?skip=${skip}&limit=${limit}`,
   );
 };
 
@@ -139,110 +144,92 @@ export const getClassesByBoard = async (boardId: number): Promise<Class[]> => {
 };
 
 export const getSubjectsByClass = async (
-  classId: number
+  classId: number,
 ): Promise<Subject[]> => {
   return makeGetRequest<Subject>(
-    `${API_CONTENT_URL}/subjects/classes/${classId}`
+    `${API_CONTENT_URL}/subjects/classes/${classId}`,
   );
 };
 
 export const getChaptersBySubject = async (
-  subjectId: number
+  subjectId: number,
 ): Promise<Chapter[]> => {
   return makeGetRequest<Chapter>(
-    `${API_CONTENT_URL}/chapters/subjects/${subjectId}`
+    `${API_CONTENT_URL}/chapters/subjects/${subjectId}`,
   );
 };
 
 export const getKeyPointsByChapter = async (
-  chapterId: number
+  chapterId: number,
 ): Promise<KeyPoint[]> => {
   return makeGetRequest<KeyPoint>(
-    `${API_CONTENT_URL}/key-points/chapter/${chapterId}`
+    `${API_CONTENT_URL}/key-points/chapter/${chapterId}`,
   );
 };
 
 export const getSessionsByChapter = async (
-  chapterId: number
+  chapterId: number,
 ): Promise<Session[]> => {
   return makeGetRequest<Session>(
-    `${API_CONTENT_URL}/sessions/chapters/${chapterId}`
+    `${API_CONTENT_URL}/sessions/chapters/${chapterId}`,
   );
 };
 
 export const getSessionKeyPointsBySession = async (
-  sessionId: number
+  sessionId: number,
 ): Promise<SessionKeyPoint[]> => {
   return makeGetRequest<SessionKeyPoint>(
-    `${API_CONTENT_URL}/session-key-points/sessions/${sessionId}`
+    `${API_CONTENT_URL}/session-key-points/sessions/${sessionId}`,
   );
 };
 
 export const getSessionDetailsBySession = async (
-  sessionId: number
+  sessionId: number,
 ): Promise<SessionDetails[]> => {
   return makeGetRequest<SessionDetails>(
-    `/session-details/sessions/${sessionId}`
+    `/session-details/sessions/${sessionId}`,
   );
 };
 
 export const getQuestionsByChapter = async (
-  chapterId: number
+  chapterId: number,
 ): Promise<Question[]> => {
   return makeGetRequest<Question>(`/questions/chapters/${chapterId}`);
 };
 
-// Generic API call function for POST/PUT requests
-const makeRequest = async (
-  method: "POST" | "PUT",
-  endpoint: string,
-  data: any
-) => {
-  try {
-    const response = await fetch(`${API_CONTENT_URL}${endpoint}`, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`API error: ${response.status} ${error}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error(`Error making ${method} request to ${endpoint}:`, error);
-    throw error;
-  }
-};
-
 // Create/Update functions for each entity
 export const createBoard = async (data: Omit<Board, "id">) =>
-  makeRequest("POST", "/boards", data);
+  makePostRequest(`${API_CONTENT_URL}/boards`, data);
 
 export const updateBoard = async (id: number, data: Partial<Board>) =>
-  makeRequest("PUT", `/boards/${id}`, data);
+  makePutRequest(`${API_CONTENT_URL}/boards/${id}`, data);
 
 export const createClass = async (data: Omit<Class, "id">) =>
-  makeRequest("POST", "/classes", data);
+  makePostRequest(`${API_CONTENT_URL}/classes`, data);
 
 export const updateClass = async (id: number, data: Partial<Class>) =>
-  makeRequest("PUT", `/classes/${id}`, data);
+  makePutRequest(`${API_CONTENT_URL}/classes/${id}`, data);
 
 export const createSubject = async (data: Omit<Subject, "id">) =>
-  makeRequest("POST", "/subjects", data);
+  makePostRequest(`${API_CONTENT_URL}/subjects`, data);
 
 export const updateSubject = async (id: number, data: Partial<Subject>) =>
-  makeRequest("PUT", `/subjects/${id}`, data);
+  makePutRequest(`${API_CONTENT_URL}/subjects/${id}`, data);
+
+export const createChapter = async (data: Omit<Chapter, "id">) =>
+  makePostRequest(`${API_CONTENT_URL}/chapters`, data);
+
+export const updateChapter = async (id: number, data: Partial<Chapter>) =>
+  makePutRequest(`${API_CONTENT_URL}/chapters/${id}`, data);
 
 // Entity metadata for admin UI
 export interface EntityMetadata {
   name: string;
-  endpoint: string;
+  endpoint?: string;
   fetchFunction: (params?: any) => Promise<any[]>;
+  createFunction?: (data: any) => Promise<any>;
+  updateFunction?: (id: number, data: any) => Promise<any>;
+  deleteFunction?: (id: number) => Promise<void>;
   columns: { field: string; header: string; width?: string }[];
   childEntity?: string;
   childFetchFunction?: (parentId: number) => Promise<any[]>;
@@ -250,10 +237,12 @@ export interface EntityMetadata {
   editFields?: Array<{
     name: string;
     label: string;
-    type?: "text" | "number" | "checkbox" | "email";
+    type?: "text" | "number" | "checkbox" | "email" | "select";
     required?: boolean;
     multiline?: boolean;
     rows?: number;
+    options?: Array<{ value: any; label: string }>;
+    fetchOptions?: () => Promise<Array<{ value: any; label: string }>>;
   }>;
   onSubmit?: (data: Record<string, any>, isNew: boolean) => Promise<void>;
 }
@@ -266,13 +255,13 @@ export const ENTITIES: Record<string, EntityMetadata> = {
     columns: [
       { field: "name", header: "Name" },
       { field: "code", header: "Code", width: "100px" },
-      { field: "is_active", header: "Active", width: "100px" },
+      { field: "isActive", header: "Active", width: "100px" },
     ],
     childEntity: "boards",
     editFields: [
       { name: "name", label: "Name", required: true },
       { name: "code", label: "Code", required: true },
-      { name: "is_active", label: "Active", type: "checkbox" },
+      { name: "isActive", label: "Active", type: "checkbox" },
     ],
   },
   boards: {
@@ -282,8 +271,8 @@ export const ENTITIES: Record<string, EntityMetadata> = {
     columns: [
       { field: "name", header: "Name" },
       { field: "description", header: "Description" },
-      { field: "state_name", header: "State", width: "120px" },
-      { field: "is_active", header: "Active", width: "100px" },
+      { field: "stateName", header: "State", width: "120px" },
+      { field: "isActive", header: "Active", width: "100px" },
     ],
     childEntity: "classes",
     childFetchFunction: getClassesByBoard,
@@ -291,8 +280,19 @@ export const ENTITIES: Record<string, EntityMetadata> = {
     editFields: [
       { name: "name", label: "Board Name", required: true },
       { name: "description", label: "Description", multiline: true, rows: 3 },
-      { name: "state_id", label: "State ID", type: "number" },
-      { name: "is_active", label: "Active", type: "checkbox" },
+      {
+        name: "stateId",
+        label: "State",
+        type: "select",
+        fetchOptions: async () => {
+          const states = await getStates();
+          return states.map((state) => ({
+            value: state.id,
+            label: state.name,
+          }));
+        },
+      },
+      { name: "isActive", label: "Active", type: "checkbox" },
     ],
     onSubmit: async (data, isNew) => {
       if (isNew) {
@@ -308,9 +308,9 @@ export const ENTITIES: Record<string, EntityMetadata> = {
     fetchFunction: async () => [],
     columns: [
       { field: "name", header: "Name" },
-      { field: "board_id", header: "Board ID", width: "100px" },
-      { field: "display_order", header: "Order", width: "100px" },
-      { field: "is_active", header: "Active", width: "100px" },
+      { field: "boardId", header: "Board ID", width: "100px" },
+      { field: "displayOrder", header: "Order", width: "100px" },
+      { field: "isActive", header: "Active", width: "100px" },
     ],
     childEntity: "subjects",
     childFetchFunction: getSubjectsByClass,
@@ -318,13 +318,13 @@ export const ENTITIES: Record<string, EntityMetadata> = {
     editFields: [
       { name: "name", label: "Class Name", required: true },
       {
-        name: "board_id",
+        name: "boardId",
         label: "Board ID",
         type: "number",
         required: true,
       },
-      { name: "display_order", label: "Display Order", type: "number" },
-      { name: "is_active", label: "Active", type: "checkbox" },
+      { name: "displayOrder", label: "Display Order", type: "number" },
+      { name: "isActive", label: "Active", type: "checkbox" },
     ],
     onSubmit: async (data, isNew) => {
       if (isNew) {
@@ -340,16 +340,16 @@ export const ENTITIES: Record<string, EntityMetadata> = {
     fetchFunction: async () => [],
     columns: [
       { field: "name", header: "Name" },
-      { field: "class_id", header: "Class ID", width: "100px" },
-      { field: "is_active", header: "Active", width: "100px" },
+      { field: "classId", header: "Class ID", width: "100px" },
+      { field: "isActive", header: "Active", width: "100px" },
     ],
     childEntity: "chapters",
     childFetchFunction: getChaptersBySubject,
     parentIdField: "id",
     editFields: [
       { name: "name", label: "Subject Name", required: true },
-      { name: "class_id", label: "Class ID", type: "number", required: true },
-      { name: "is_active", label: "Active", type: "checkbox" },
+      { name: "classId", label: "Class ID", type: "number", required: true },
+      { name: "isActive", label: "Active", type: "checkbox" },
     ],
     onSubmit: async (data, isNew) => {
       if (isNew) {
@@ -365,17 +365,29 @@ export const ENTITIES: Record<string, EntityMetadata> = {
     fetchFunction: async () => [],
     columns: [
       { field: "title", header: "Title" },
-      { field: "chapter_number", header: "Chapter #", width: "100px" },
-      { field: "subject_id", header: "Subject ID", width: "100px" },
+      { field: "chapterNumber", header: "Chapter #", width: "100px" },
+      { field: "subjectId", header: "Subject ID", width: "100px" },
       { field: "description", header: "Description" },
-      { field: "is_active", header: "Active", width: "100px" },
+      { field: "isActive", header: "Active", width: "100px" },
     ],
     editFields: [
       { name: "title", label: "Chapter Title", required: true },
-      { name: "chapter_number", label: "Chapter Number", type: "number" },
-      { name: "subject_id", label: "Subject ID", type: "number" },
+      { name: "chapterNumber", label: "Chapter Number", type: "number" },
+      {
+        name: "subjectId",
+        label: "Subject ID",
+        type: "number",
+        required: true,
+      },
       { name: "description", label: "Description", multiline: true, rows: 3 },
-      { name: "is_active", label: "Active", type: "checkbox" },
+      { name: "isActive", label: "Active", type: "checkbox" },
     ],
+    onSubmit: async (data, isNew) => {
+      if (isNew) {
+        await createChapter(data as Omit<Chapter, "id">);
+      } else {
+        await updateChapter(data.id, data);
+      }
+    },
   },
 };

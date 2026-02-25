@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Paper,
@@ -16,12 +16,19 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import { MoreVert, Edit, Delete } from "@mui/icons-material";
+import { MoreVert, Edit } from "@mui/icons-material";
 
 interface Column {
   field: string;
   header: string;
   width?: string;
+}
+
+interface CustomAction {
+  label: string;
+  icon?: React.ReactNode;
+  onClick: (row: any) => void;
+  condition?: (row: any) => boolean;
 }
 
 interface EntityTableProps {
@@ -32,6 +39,7 @@ interface EntityTableProps {
   entityName: string;
   onRowClick?: (row: any) => void;
   onEdit?: (row: any) => void;
+  customActions?: CustomAction[];
 }
 
 const EntityTable: React.FC<EntityTableProps> = ({
@@ -42,6 +50,7 @@ const EntityTable: React.FC<EntityTableProps> = ({
   entityName,
   onRowClick,
   onEdit,
+  customActions,
 }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedRowId, setSelectedRowId] = useState<any>(null);
@@ -63,6 +72,24 @@ const EntityTable: React.FC<EntityTableProps> = ({
       onEdit(selectedRow);
     }
     handleMenuClose();
+  };
+
+  const handleCustomAction = (action: CustomAction) => {
+    const selectedRow = data.find((row) => row.id === selectedRowId);
+    if (selectedRow) {
+      action.onClick(selectedRow);
+    }
+    handleMenuClose();
+  };
+
+  const getVisibleActions = (row: any) => {
+    if (!customActions) return [];
+    return customActions.filter((action) => {
+      if (action.condition) {
+        return action.condition(row);
+      }
+      return true;
+    });
   };
 
   const renderCellValue = (value: any, field: string) => {
@@ -212,6 +239,19 @@ const EntityTable: React.FC<EntityTableProps> = ({
           <Edit fontSize="small" sx={{ mr: 1 }} />
           Edit
         </MenuItem>
+        {selectedRowId &&
+          getVisibleActions(
+            data.find((row) => row.id === selectedRowId) || {}
+          ).map((action, index) => (
+            <MenuItem key={index} onClick={() => handleCustomAction(action)}>
+              {action.icon && (
+                <Box sx={{ mr: 1, display: "flex", alignItems: "center" }}>
+                  {action.icon}
+                </Box>
+              )}
+              {action.label}
+            </MenuItem>
+          ))}
       </Menu>
     </TableContainer>
   );

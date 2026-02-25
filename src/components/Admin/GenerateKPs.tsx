@@ -33,6 +33,7 @@ import {
   KnowledgePoint,
 } from "../../services/adminServices/apiService";
 import KnowledgePointCard from "./KnowledgePointCard";
+import AlertModal from "../Common/AlertModal";
 
 const GenerateKPs: React.FC = () => {
   const [boards, setBoards] = useState<Board[]>([]);
@@ -54,6 +55,14 @@ const GenerateKPs: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+
+  // Modal state for alerts
+  const [alertModal, setAlertModal] = useState({
+    open: false,
+    title: "",
+    message: "",
+    type: "info" as "success" | "error" | "info" | "warning",
+  });
 
   // Fetch boards on mount
   useEffect(() => {
@@ -156,7 +165,7 @@ const GenerateKPs: React.FC = () => {
         setLoading(true);
         setError(null);
         const kps = await getKnowledgePointsByChapter(
-          selectedChapter as number
+          selectedChapter as number,
         );
         setExistingKPs(kps);
 
@@ -213,7 +222,7 @@ Prerequisites:
       const selectedClassObj = classes.find((c) => c.id === selectedClass);
       const selectedSubjectObj = subjects.find((s) => s.id === selectedSubject);
       const selectedChapterObj = chapters.find(
-        (ch) => ch.id === selectedChapter
+        (ch) => ch.id === selectedChapter,
       );
 
       if (
@@ -226,12 +235,10 @@ Prerequisites:
       }
 
       // Extract grade number from class name (e.g., "Class 10" -> 10)
-      const gradeMatch = selectedClassObj.name.match(/\d+/);
-      const grade = gradeMatch ? parseInt(gradeMatch[0]) : 10;
 
       // Call admin service to generate KPs
       const knowledgePoints = await generateKnowledgePoints({
-        grade: grade,
+        grade: selectedClassObj.name,
         subject: selectedSubjectObj.name,
         chapter: selectedChapterObj.title,
         board: selectedBoardObj.name,
@@ -245,7 +252,7 @@ Prerequisites:
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to generate knowledge points"
+          : "Failed to generate knowledge points",
       );
       console.error(err);
     } finally {
@@ -269,16 +276,19 @@ Prerequisites:
       // Mark as saved
       setIsSaved(true);
 
-      // Show success message
-      alert(
-        `Successfully saved ${generatedKPs.length} knowledge points to database!`
-      );
+      // Show success message in modal
+      setAlertModal({
+        open: true,
+        title: "Success",
+        message: `Successfully saved ${generatedKPs.length} knowledge points to database!`,
+        type: "success",
+      });
 
       // Optionally clear the generated KPs after successful save
       // setGeneratedKPs([]);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to save knowledge points"
+        err instanceof Error ? err.message : "Failed to save knowledge points",
       );
       console.error("Error saving knowledge points:", err);
     } finally {
@@ -487,6 +497,15 @@ Prerequisites:
           </Stack>
         </>
       )}
+
+      {/* Alert Modal */}
+      <AlertModal
+        open={alertModal.open}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+        onClose={() => setAlertModal({ ...alertModal, open: false })}
+      />
     </Box>
   );
 };

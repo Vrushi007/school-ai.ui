@@ -352,6 +352,7 @@ function LessonPlanner() {
           plannedSessions={state.plannedSessions}
           isLoading={state.isLoading}
           selectedSessionId={state.selectedSessionId}
+          hasKPs={keyPoints.length > 0}
           boards={state.boards}
           classes={state.classes}
           subjects={state.subjects}

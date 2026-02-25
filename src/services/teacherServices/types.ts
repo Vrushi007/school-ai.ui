@@ -207,7 +207,7 @@ export interface SessionDetailContent {
     sessionTitle: string;
     boardWorkPlan: {
       keywords: string[];
-      definitions: string[];
+      definitions: Array<string | { term: string; definition: string }>;
       lawsOrRules: any[];
       diagramsToDraw: Array<{
         label: string;

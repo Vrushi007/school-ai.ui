@@ -25,7 +25,7 @@ export interface SessionDetailContent {
     transitions: string;
   };
   boardWorkPlan: {
-    definitions: string[];
+    definitions: Array<string | { term: string; definition: string }>;
     lawsOrRules: Array<{
       name: string;
       statement: string;

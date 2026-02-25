@@ -52,7 +52,7 @@ export const generateQuestions = async (
     );
 
     // Transform the new API response format
-    const questionPaper = (data as any).questions;
+    const questionPaper = (data as any).data.questions;
     const questions: Question[] = [];
     // Process each section
     questionPaper.sections.forEach((section: any) => {

@@ -17,30 +17,44 @@ import {
   ListItemText,
 } from "@mui/material";
 import { Quiz, ExpandMore } from "@mui/icons-material";
-import { ClassLevel, Subject, Chapter } from "../../../types";
-import { getClasses, getSubjectsForClass } from "../../../utils/teacherUtils";
+import {
+  ContentBoard,
+  ContentClass,
+  ContentSubject,
+  ContentChapter,
+} from "../../../types";
 
 interface QuestionPaperLeftSidebarProps {
-  selectedClass: ClassLevel | null;
-  selectedSubject: Subject | null;
-  selectedChapters: Chapter[];
+  selectedBoard: ContentBoard | null;
+  selectedClass: ContentClass | null;
+  selectedSubject: ContentSubject | null;
+  selectedChapters: ContentChapter[];
   totalMarks: number;
   isLoading: boolean;
-  chapterOptions: Chapter[];
-  onClassLevelChange: (classLevel: ClassLevel | "") => void;
-  onSubjectChange: (subject: Subject | "") => void;
-  onChapterChange: (chapterIds: string[]) => void;
+  boards: ContentBoard[];
+  classes: ContentClass[];
+  subjects: ContentSubject[];
+  chapters: ContentChapter[];
+  onBoardChange: (board: ContentBoard | null) => void;
+  onClassLevelChange: (classItem: ContentClass | null) => void;
+  onSubjectChange: (subject: ContentSubject | null) => void;
+  onChapterChange: (chapterIds: number[]) => void;
   onTotalMarksChange: (marks: number) => void;
   onGenerateQuestions: () => void;
 }
 
 const QuestionPaperLeftSidebar: React.FC<QuestionPaperLeftSidebarProps> = ({
+  selectedBoard,
   selectedClass,
   selectedSubject,
   selectedChapters,
   totalMarks,
   isLoading,
-  chapterOptions,
+  boards,
+  classes,
+  subjects,
+  chapters,
+  onBoardChange,
   onClassLevelChange,
   onSubjectChange,
   onChapterChange,
@@ -73,18 +87,41 @@ const QuestionPaperLeftSidebar: React.FC<QuestionPaperLeftSidebarProps> = ({
           <AccordionDetails sx={{ px: 3, pb: 3, pt: 0 }}>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
               <FormControl fullWidth>
+                <InputLabel>Board</InputLabel>
+                <Select
+                  value={selectedBoard?.id || ""}
+                  label="Board"
+                  onChange={(e) => {
+                    const board =
+                      boards.find((b) => b.id === e.target.value) || null;
+                    onBoardChange(board);
+                  }}
+                >
+                  <MenuItem value="">Select Board</MenuItem>
+                  {boards.map((board) => (
+                    <MenuItem key={board.id} value={board.id}>
+                      {board.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl fullWidth>
                 <InputLabel>Class</InputLabel>
                 <Select
-                  value={selectedClass || ""}
+                  value={selectedClass?.id || ""}
                   label="Class"
-                  onChange={(e) =>
-                    onClassLevelChange(e.target.value as ClassLevel)
-                  }
+                  onChange={(e) => {
+                    const classItem =
+                      classes.find((c) => c.id === e.target.value) || null;
+                    onClassLevelChange(classItem);
+                  }}
+                  disabled={!selectedBoard}
                 >
                   <MenuItem value="">Select Class</MenuItem>
-                  {getClasses().map((classLevel) => (
-                    <MenuItem key={classLevel} value={classLevel}>
-                      {classLevel}
+                  {classes.map((classItem) => (
+                    <MenuItem key={classItem.id} value={classItem.id}>
+                      {classItem.name}
                     </MenuItem>
                   ))}
                 </Select>
@@ -93,14 +130,19 @@ const QuestionPaperLeftSidebar: React.FC<QuestionPaperLeftSidebarProps> = ({
               <FormControl fullWidth>
                 <InputLabel>Subject</InputLabel>
                 <Select
-                  value={selectedSubject || ""}
+                  value={selectedSubject?.id || ""}
                   label="Subject"
-                  onChange={(e) => onSubjectChange(e.target.value as Subject)}
+                  onChange={(e) => {
+                    const subject =
+                      subjects.find((s) => s.id === e.target.value) || null;
+                    onSubjectChange(subject);
+                  }}
+                  disabled={!selectedClass}
                 >
                   <MenuItem value="">Select Subject</MenuItem>
-                  {getSubjectsForClass(selectedClass).map((subject) => (
-                    <MenuItem key={subject} value={subject}>
-                      {subject.charAt(0).toUpperCase() + subject.slice(1)}
+                  {subjects.map((subject) => (
+                    <MenuItem key={subject.id} value={subject.id}>
+                      {subject.name}
                     </MenuItem>
                   ))}
                 </Select>
@@ -113,9 +155,10 @@ const QuestionPaperLeftSidebar: React.FC<QuestionPaperLeftSidebarProps> = ({
                   value={selectedChapters.map((chapter) => chapter.id)}
                   label="Chapters"
                   onChange={(e) => {
-                    const value = e.target.value as string[];
+                    const value = e.target.value as number[];
                     onChapterChange(value);
                   }}
+                  disabled={!selectedSubject}
                   sx={{
                     "& .MuiSelect-select": {
                       maxWidth: "250px",
@@ -135,7 +178,7 @@ const QuestionPaperLeftSidebar: React.FC<QuestionPaperLeftSidebarProps> = ({
                     return `${selected.length} chapters selected`;
                   }}
                 >
-                  {chapterOptions.map((chapter, index) => (
+                  {chapters.map((chapter) => (
                     <MenuItem key={chapter.id} value={chapter.id}>
                       <Checkbox
                         checked={selectedChapters.some(
@@ -144,7 +187,7 @@ const QuestionPaperLeftSidebar: React.FC<QuestionPaperLeftSidebarProps> = ({
                         sx={{ padding: "4px 8px 4px 0" }}
                       />
                       <ListItemText
-                        primary={`${index + 1}. ${chapter.title}`}
+                        primary={`${chapter.chapterNumber}. ${chapter.title}`}
                         sx={{ margin: 0 }}
                       />
                     </MenuItem>

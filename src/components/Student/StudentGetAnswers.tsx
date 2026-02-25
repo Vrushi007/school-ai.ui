@@ -38,6 +38,7 @@ import {
 } from "../../services/exportServices/sessionPlanExport";
 import RenderAIResponse from "./RenderAIResponse";
 import ErrorModal from "../ErrorModal";
+import AlertModal from "../Common/AlertModal";
 
 const StudentGetAnswers: React.FC = () => {
   const [chatState, setChatState] = useState<ChatState>({
@@ -48,12 +49,20 @@ const StudentGetAnswers: React.FC = () => {
   });
   const [currentQuestion, setCurrentQuestion] = useState("");
   const [exportMenuAnchor, setExportMenuAnchor] = useState<HTMLElement | null>(
-    null
+    null,
   );
   const [errorModal, setErrorModal] = useState<ErrorModalState>({
     open: false,
     title: "",
     message: "",
+  });
+
+  // Modal state for alerts
+  const [alertModal, setAlertModal] = useState({
+    open: false,
+    title: "",
+    message: "",
+    type: "info" as "success" | "error" | "info" | "warning",
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -106,7 +115,7 @@ const StudentGetAnswers: React.FC = () => {
       // Create API request
       const questionRequest = createQuestionRequest(
         userMessage.content,
-        chatState.conversationHistory
+        chatState.conversationHistory,
       );
 
       // Call API
@@ -194,7 +203,7 @@ const StudentGetAnswers: React.FC = () => {
           </div>
           <div class="message-content">${message.content.replace(
             /\n/g,
-            "<br>"
+            "<br>",
           )}</div>
         </div>`;
       })
@@ -237,10 +246,19 @@ const StudentGetAnswers: React.FC = () => {
 
     const htmlContent = formatChatForPDF();
     const filename = sanitizeFilename(
-      `study_session_${chatState.conversationId || Date.now()}`
+      `study_session_${chatState.conversationId || Date.now()}`,
     );
-    downloadAsPDF(htmlContent, filename, "Study Session Chat");
-    handleExportMenuClose();
+    try {
+      downloadAsPDF(htmlContent, filename, "Study Session Chat");
+      handleExportMenuClose();
+    } catch (err) {
+      setAlertModal({
+        open: true,
+        title: "Export Error",
+        message: err instanceof Error ? err.message : "Failed to export PDF",
+        type: "error",
+      });
+    }
   };
 
   const handleCopyToClipboard = async () => {
@@ -538,6 +556,15 @@ const StudentGetAnswers: React.FC = () => {
         onClose={handleCloseErrorModal}
         title={errorModal.title}
         message={errorModal.message}
+      />
+
+      {/* Alert Modal */}
+      <AlertModal
+        open={alertModal.open}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+        onClose={() => setAlertModal({ ...alertModal, open: false })}
       />
     </Container>
   );

@@ -29,13 +29,14 @@ import {
   copyToClipboard,
   sanitizeFilename,
 } from "../../../services/exportServices/sessionPlanExport";
-import { Chapter } from "../../../types";
+import { ContentChapter } from "../../../types";
 import { Question } from "../../../services/teacherServices/types";
+import AlertModal from "../../Common/AlertModal";
 
 interface QuestionPaperMainContentProps {
   isLoading: boolean;
   generatedQuestions: Question[];
-  selectedChapters: Chapter[];
+  selectedChapters: ContentChapter[];
 }
 
 const QuestionPaperMainContent: React.FC<QuestionPaperMainContentProps> = ({
@@ -44,8 +45,16 @@ const QuestionPaperMainContent: React.FC<QuestionPaperMainContentProps> = ({
   selectedChapters,
 }) => {
   const [exportMenuAnchor, setExportMenuAnchor] = useState<HTMLElement | null>(
-    null
+    null,
   );
+
+  // Modal state for alerts
+  const [alertModal, setAlertModal] = useState({
+    open: false,
+    title: "",
+    message: "",
+    type: "info" as "success" | "error" | "info" | "warning",
+  });
 
   const handleExportMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setExportMenuAnchor(event.currentTarget);
@@ -61,17 +70,20 @@ const QuestionPaperMainContent: React.FC<QuestionPaperMainContentProps> = ({
     const chaptersText = selectedChapters.map((ch) => ch.title).join(", ");
 
     // Group questions by section
-    const questionsBySection = generatedQuestions.reduce((acc, question) => {
-      const sectionName = question.sectionName || "General";
-      if (!acc[sectionName]) {
-        acc[sectionName] = {
-          description: question.sectionDescription || "",
-          questions: [],
-        };
-      }
-      acc[sectionName].questions.push(question);
-      return acc;
-    }, {} as Record<string, { description: string; questions: Question[] }>);
+    const questionsBySection = generatedQuestions.reduce(
+      (acc, question) => {
+        const sectionName = question.sectionName || "General";
+        if (!acc[sectionName]) {
+          acc[sectionName] = {
+            description: question.sectionDescription || "",
+            questions: [],
+          };
+        }
+        acc[sectionName].questions.push(question);
+        return acc;
+      },
+      {} as Record<string, { description: string; questions: Question[] }>,
+    );
 
     let questionCounter = 0;
     const sectionsHtml = Object.entries(questionsBySection)
@@ -106,8 +118,8 @@ const QuestionPaperMainContent: React.FC<QuestionPaperMainContentProps> = ({
                 questionContent += `
                 <div class="sub-question">
                   <strong>(${subQ.subQNo})</strong> ${subQ.questionText} [${
-                  subQ.marks
-                } mark${subQ.marks !== 1 ? "s" : ""}]
+                    subQ.marks
+                  } mark${subQ.marks !== 1 ? "s" : ""}]
                 </div>`;
               });
               questionContent += `</div>`;
@@ -125,8 +137,8 @@ const QuestionPaperMainContent: React.FC<QuestionPaperMainContentProps> = ({
                   .map(
                     (option, optionIndex) =>
                       `<div class="option">${String.fromCharCode(
-                        65 + optionIndex
-                      )}. ${option}</div>`
+                        65 + optionIndex,
+                      )}. ${option}</div>`,
                   )
                   .join("")}
               </div>`;
@@ -143,11 +155,11 @@ const QuestionPaperMainContent: React.FC<QuestionPaperMainContentProps> = ({
             <h2>Section ${sectionName}</h2>
             <p class="section-description">${sectionData.description}</p>
             <p class="section-info">${sectionData.questions.length} question${
-          sectionData.questions.length !== 1 ? "s" : ""
-        } • ${sectionData.questions.reduce(
-          (sum, q) => sum + q.marks,
-          0
-        )} marks</p>
+              sectionData.questions.length !== 1 ? "s" : ""
+            } • ${sectionData.questions.reduce(
+              (sum, q) => sum + q.marks,
+              0,
+            )} marks</p>
           </div>
           ${sectionQuestionsHtml}
         </div>`;
@@ -219,10 +231,12 @@ const QuestionPaperMainContent: React.FC<QuestionPaperMainContentProps> = ({
           <div class="question-reference">
             Question: ${(question.question || question.questionText).substring(
               0,
-              80
+              80,
             )}${
-          (question.question || question.questionText).length > 80 ? "..." : ""
-        }
+              (question.question || question.questionText).length > 80
+                ? "..."
+                : ""
+            }
           </div>`;
 
         // Handle case-based questions with sub-questions
@@ -238,7 +252,7 @@ const QuestionPaperMainContent: React.FC<QuestionPaperMainContentProps> = ({
               <div class="answer-lines">
                 ${Array(3)
                   .fill(
-                    '<div class="line">_______________________________________________________</div>'
+                    '<div class="line">_______________________________________________________</div>',
                   )
                   .join("")}
               </div>
@@ -279,15 +293,15 @@ const QuestionPaperMainContent: React.FC<QuestionPaperMainContentProps> = ({
             question.type === "VSA" || question.type === "short-answer"
               ? 3
               : question.type === "SA"
-              ? 5
-              : 8;
+                ? 5
+                : 8;
           answerContent += `
           <div class="answer-space">
             <strong>Expected Answer:</strong>
             <div class="lines">
               ${Array(lines)
                 .fill(
-                  '<div class="line">_______________________________________________________</div>'
+                  '<div class="line">_______________________________________________________</div>',
                 )
                 .join("")}
             </div>
@@ -368,17 +382,20 @@ ${"=".repeat(60)}
 `;
 
     // Group questions by section
-    const questionsBySection = generatedQuestions.reduce((acc, question) => {
-      const sectionName = question.sectionName || "General";
-      if (!acc[sectionName]) {
-        acc[sectionName] = {
-          description: question.sectionDescription || "",
-          questions: [],
-        };
-      }
-      acc[sectionName].questions.push(question);
-      return acc;
-    }, {} as Record<string, { description: string; questions: Question[] }>);
+    const questionsBySection = generatedQuestions.reduce(
+      (acc, question) => {
+        const sectionName = question.sectionName || "General";
+        if (!acc[sectionName]) {
+          acc[sectionName] = {
+            description: question.sectionDescription || "",
+            questions: [],
+          };
+        }
+        acc[sectionName].questions.push(question);
+        return acc;
+      },
+      {} as Record<string, { description: string; questions: Question[] }>,
+    );
 
     let questionCounter = 0;
 
@@ -390,7 +407,7 @@ ${"=".repeat(60)}
         sectionData.questions.length !== 1 ? "s" : ""
       } • ${sectionData.questions.reduce(
         (sum, q) => sum + q.marks,
-        0
+        0,
       )} marks\n\n`;
 
       sectionData.questions.forEach((question) => {
@@ -475,34 +492,61 @@ ${"=".repeat(60)}
   const handleExportAsPDF = () => {
     if (generatedQuestions.length === 0) return;
 
-    const htmlContent = formatQuestionPaperForExport();
-    const filename = sanitizeFilename(
-      `question_paper_${selectedChapters.map((ch) => ch.title).join("_")}`
-    );
-    downloadAsPDF(htmlContent, filename, "Question Paper");
-    handleExportMenuClose();
+    try {
+      const htmlContent = formatQuestionPaperForExport();
+      const filename = sanitizeFilename(
+        `question_paper_${selectedChapters.map((ch) => ch.title).join("_")}`,
+      );
+      downloadAsPDF(htmlContent, filename, "Question Paper");
+      handleExportMenuClose();
+    } catch (err) {
+      setAlertModal({
+        open: true,
+        title: "Export Error",
+        message: err instanceof Error ? err.message : "Failed to export PDF",
+        type: "error",
+      });
+    }
   };
 
   const handleExportQuestionsOnly = () => {
     if (generatedQuestions.length === 0) return;
 
-    const htmlContent = formatQuestionsForExport();
-    const filename = sanitizeFilename(
-      `questions_only_${selectedChapters.map((ch) => ch.title).join("_")}`
-    );
-    downloadAsPDF(htmlContent, filename, "Questions Only");
-    handleExportMenuClose();
+    try {
+      const htmlContent = formatQuestionsForExport();
+      const filename = sanitizeFilename(
+        `questions_only_${selectedChapters.map((ch) => ch.title).join("_")}`,
+      );
+      downloadAsPDF(htmlContent, filename, "Questions Only");
+      handleExportMenuClose();
+    } catch (err) {
+      setAlertModal({
+        open: true,
+        title: "Export Error",
+        message: err instanceof Error ? err.message : "Failed to export PDF",
+        type: "error",
+      });
+    }
   };
 
   const handleExportAnswersOnly = () => {
     if (generatedQuestions.length === 0) return;
 
-    const htmlContent = formatAnswersForExport();
-    const filename = sanitizeFilename(
-      `answers_only_${selectedChapters.map((ch) => ch.title).join("_")}`
-    );
-    downloadAsPDF(htmlContent, filename, "Answer Key");
-    handleExportMenuClose();
+    try {
+      const htmlContent = formatAnswersForExport();
+      const filename = sanitizeFilename(
+        `answers_only_${selectedChapters.map((ch) => ch.title).join("_")}`,
+      );
+      downloadAsPDF(htmlContent, filename, "Answer Key");
+      handleExportMenuClose();
+    } catch (err) {
+      setAlertModal({
+        open: true,
+        title: "Export Error",
+        message: err instanceof Error ? err.message : "Failed to export PDF",
+        type: "error",
+      });
+    }
   };
 
   const handleCopyToClipboard = async () => {
@@ -711,8 +755,8 @@ ${"=".repeat(60)}
                   {question.type === "VSA" || question.type === "short-answer"
                     ? "Expected answer length: 2-3 sentences or 30-50 words"
                     : question.type === "SA"
-                    ? "Expected answer length: 3-5 sentences or 50-80 words"
-                    : "Expected answer length: 1-2 paragraphs or 100-150 words"}
+                      ? "Expected answer length: 3-5 sentences or 50-80 words"
+                      : "Expected answer length: 1-2 paragraphs or 100-150 words"}
                 </Typography>
               </Box>
             )}
@@ -894,7 +938,10 @@ ${"=".repeat(60)}
               acc[sectionName].questions.push(question);
               return acc;
             },
-            {} as Record<string, { description: string; questions: Question[] }>
+            {} as Record<
+              string,
+              { description: string; questions: Question[] }
+            >,
           );
 
           let questionCounter = 0;
@@ -938,10 +985,19 @@ ${"=".repeat(60)}
                   return renderQuestion(question, questionCounter - 1);
                 })}
               </Box>
-            )
+            ),
           );
         })()}
       </Box>
+
+      {/* Alert Modal */}
+      <AlertModal
+        open={alertModal.open}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+        onClose={() => setAlertModal({ ...alertModal, open: false })}
+      />
     </Paper>
   );
 };

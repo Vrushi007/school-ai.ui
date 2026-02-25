@@ -11,8 +11,12 @@ import {
   Alert,
   FormControlLabel,
   Checkbox,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  FormHelperText,
 } from "@mui/material";
-import { Close } from "@mui/icons-material";
 
 interface EditModalProps {
   open: boolean;
@@ -20,14 +24,17 @@ interface EditModalProps {
   fields: Array<{
     name: string;
     label: string;
-    type?: "text" | "number" | "checkbox" | "email";
+    type?: "text" | "number" | "checkbox" | "email" | "select";
     required?: boolean;
     multiline?: boolean;
     rows?: number;
+    options?: Array<{ value: any; label: string }>;
+    fetchOptions?: () => Promise<Array<{ value: any; label: string }>>;
   }>;
   initialData?: Record<string, any>;
   loading?: boolean;
   error?: string | null;
+  disabledFields?: string[];
   onClose: () => void;
   onSubmit: (data: Record<string, any>) => Promise<void>;
 }
@@ -39,19 +46,45 @@ const EditModal: React.FC<EditModalProps> = ({
   initialData = {},
   loading = false,
   error = null,
+  disabledFields = [],
   onClose,
   onSubmit,
 }) => {
   const [formData, setFormData] = useState<Record<string, any>>(initialData);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [selectOptions, setSelectOptions] = useState<Record<string, Array<{ value: any; label: string }>>>({});
 
   useEffect(() => {
     setFormData(initialData);
     setSubmitError(null);
-  }, [initialData, open]);
+    
+    // Fetch options for select fields
+    const loadSelectOptions = async () => {
+      const optionsMap: Record<string, Array<{ value: any; label: string }>> = {};
+      for (const field of fields) {
+        if (field.type === "select") {
+          if (field.options) {
+            optionsMap[field.name] = field.options;
+          } else if (field.fetchOptions) {
+            try {
+              optionsMap[field.name] = await field.fetchOptions();
+            } catch (err) {
+              console.error(`Failed to fetch options for ${field.name}:`, err);
+              optionsMap[field.name] = [];
+            }
+          }
+        }
+      }
+      setSelectOptions(optionsMap);
+    };
+    
+    if (open) {
+      loadSelectOptions();
+    }
+  }, [initialData, open, fields]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement> | any) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -104,6 +137,34 @@ const EditModal: React.FC<EditModalProps> = ({
               );
             }
 
+            if (field.type === "select") {
+              return (
+                <FormControl
+                  key={field.name}
+                  fullWidth
+                  required={field.required || false}
+                  disabled={submitting || disabledFields.includes(field.name)}
+                >
+                  <InputLabel>{field.label}</InputLabel>
+                  <Select
+                    name={field.name}
+                    value={formData[field.name] || ""}
+                    onChange={handleChange}
+                    label={field.label}
+                  >
+                    {(selectOptions[field.name] || []).map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {disabledFields.includes(field.name) && (
+                    <FormHelperText>Auto-populated from parent</FormHelperText>
+                  )}
+                </FormControl>
+              );
+            }
+
             return (
               <TextField
                 key={field.name}
@@ -116,7 +177,12 @@ const EditModal: React.FC<EditModalProps> = ({
                 fullWidth
                 multiline={field.multiline || false}
                 rows={field.rows || 1}
-                disabled={submitting}
+                disabled={submitting || disabledFields.includes(field.name)}
+                helperText={
+                  disabledFields.includes(field.name)
+                    ? "Auto-populated from parent"
+                    : undefined
+                }
               />
             );
           })}

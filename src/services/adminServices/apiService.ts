@@ -6,7 +6,7 @@ import {
 } from "../baseService";
 
 export interface GenerateKPsRequest {
-  grade: number;
+  grade: string;
   subject: string;
   chapter: string;
   board: string;
@@ -79,11 +79,11 @@ export interface GenerateKPsResponse {
  * @returns Array of existing knowledge points
  */
 export const getKnowledgePointsByChapter = async (
-  chapterId: number
+  chapterId: number,
 ): Promise<KnowledgePoint[]> => {
   try {
     const result = await makeGetRequest(
-      `${API_CONTENT_URL}/key-points/chapter/${chapterId}`
+      `${API_CONTENT_URL}/key-points/chapter/${chapterId}`,
     );
 
     console.log("Fetched KPs from DB:", result);
@@ -93,14 +93,17 @@ export const getKnowledgePointsByChapter = async (
     const knowledgePoints = (result as any[]).map((dbKp: any) => {
       // Merge top-level fields with content field (content has priority for rich data)
       const content = dbKp.content || {};
-      
+
       return {
         kpId: dbKp.code || content.kpId || "",
         kpTitle: dbKp.title || content.kpTitle || "",
         kpDescription: content.kpDescription || "",
         bloomLevel: dbKp.cognitiveLevel || content.bloomLevel || "",
         irtDifficulty: content.irtDifficulty,
-        difficultyLabel: dbKp.difficultyLevel?.replace("_", " ") || content.difficultyLabel || "",
+        difficultyLabel:
+          dbKp.difficultyLevel?.replace("_", " ") ||
+          content.difficultyLabel ||
+          "",
         prerequisiteKps: content.prerequisiteKps || [],
         misconceptionTags: content.misconceptionTags || [],
         assessmentExamples: content.assessmentExamples || [],
@@ -125,12 +128,12 @@ export const getKnowledgePointsByChapter = async (
 };
 
 export const generateKnowledgePoints = async (
-  request: GenerateKPsRequest
+  request: GenerateKPsRequest,
 ): Promise<KnowledgePoint[]> => {
   try {
     const result = await makePostRequest(
       `${API_AI_URL}/api/generate-knowledge-points`,
-      request
+      request,
     );
 
     console.log("API Response:", result);
@@ -158,7 +161,7 @@ export const generateKnowledgePoints = async (
  */
 export const saveKnowledgePoints = async (
   knowledgePoints: KnowledgePoint[],
-  chapterId: number
+  chapterId: number,
 ): Promise<any> => {
   try {
     // Map frontend KnowledgePoint format to backend SaveKnowledgePointRequest format
@@ -194,13 +197,13 @@ export const saveKnowledgePoints = async (
         section: kp.sectionTitle || "",
         modelVersion: "gpt-4-turbo-2024-04-09", // Default - can be enhanced later
         promptVersion: "v1.0", // Default - can be enhanced later
-      })
+      }),
     );
 
     // Call the API to save knowledge points
     const result = await makePostRequest(
       `${API_CONTENT_URL}/key-points/`,
-      saveRequests
+      saveRequests,
     );
 
     return result;

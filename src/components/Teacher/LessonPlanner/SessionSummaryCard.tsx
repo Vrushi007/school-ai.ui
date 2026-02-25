@@ -71,7 +71,7 @@ const SessionSummaryCard: React.FC<SessionSummaryCardProps> = ({
         const apiContent = response.data.content;
         const contentWithStringDuration: SessionDetailContent = {
           ...apiContent,
-          duration: `${apiContent.duration} minutes`,
+          duration: `${apiContent.duration}`,
           objectives: apiContent.objectives
             .split("\t")
             .map((obj) => obj.trim())
@@ -97,7 +97,7 @@ const SessionSummaryCard: React.FC<SessionSummaryCardProps> = ({
                   duration: video.duration,
                   viewCount: video.viewCount,
                   likeCount: video.likeCount,
-                })
+                }),
               ),
             },
           },
@@ -319,10 +319,10 @@ const SessionSummaryCard: React.FC<SessionSummaryCardProps> = ({
                           kp.difficultyLevel?.toLowerCase().includes("easy")
                             ? "success"
                             : kp.difficultyLevel
-                                ?.toLowerCase()
-                                .includes("medium")
-                            ? "warning"
-                            : "error"
+                                  ?.toLowerCase()
+                                  .includes("medium")
+                              ? "warning"
+                              : "error"
                         }
                         sx={{ height: 24, fontSize: "0.7rem" }}
                       />

@@ -77,8 +77,7 @@ export const downloadAsPDF = (
   const printWindow = window.open("", "_blank");
 
   if (!printWindow) {
-    alert("Please allow popups to download PDF");
-    return;
+    throw new Error("Please allow popups to download PDF");
   }
 
   // Enhanced PDF-optimized HTML
@@ -252,8 +251,7 @@ export const printElementAsPDF = (
   const printWindow = window.open("", "_blank");
 
   if (!printWindow) {
-    alert("Please allow popups to print/download PDF");
-    return;
+    throw new Error("Please allow popups to print/download PDF");
   }
 
   // Clone the element to avoid modifying the original

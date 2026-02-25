@@ -9,33 +9,33 @@ export type Subject = string; // Allow any subject that exists in the data
 export interface ContentBoard {
   id: number;
   name: string;
-  is_active: boolean;
+  isActive: boolean;
   description: string;
-  state_id: number | null;
-  state_name?: string;
+  stateId: number | null;
+  stateName?: string;
 }
 
 export interface ContentClass {
   id: number;
-  board_id: number;
+  boardId: number;
   name: string;
-  display_order: number;
-  is_active: boolean;
+  displayOrder: number;
+  isActive: boolean;
 }
 
 export interface ContentSubject {
   id: number;
-  class_id: number;
+  classId: number;
   name: string;
-  is_active: boolean;
+  isActive: boolean;
 }
 
 export interface ContentChapter {
   id: number;
-  subject_id: number;
+  subjectId: number;
   title: string;
-  chapter_number: number;
-  is_active: boolean;
+  chapterNumber: number;
+  isActive: boolean;
   description: string | null;
 }
 

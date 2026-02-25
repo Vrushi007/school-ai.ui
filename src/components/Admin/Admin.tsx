@@ -23,11 +23,17 @@ import {
   ChevronRight,
   Add,
   SmartToy as SmartToyIcon,
+  Business as BusinessIcon,
+  People as PeopleIcon,
+  CheckCircle,
+  Block,
 } from "@mui/icons-material";
 import EntityTable from "../EntityTable";
 import EditModal from "../EditModal";
 import { ENTITIES, EntityMetadata } from "../../services/contentService";
 import GenerateKPs from "./GenerateKPs";
+import { useAuth } from "../../contexts/AuthContext";
+import * as authAdminService from "../../services/authAdminService";
 
 interface EntityItem {
   key: string;
@@ -52,9 +58,13 @@ interface ModalState {
   entityKey: string | null;
   isNew: boolean;
   data: Record<string, any> | null;
+  parentId?: number | null;
+  parentIdField?: string | null;
+  disabledFields?: string[];
 }
 
 const Admin: React.FC = () => {
+  const { user } = useAuth();
   const [panes, setPanes] = useState<Pane[]>([]);
   const [selectedMenu, setSelectedMenu] = useState<string | null>(null);
   const [modal, setModal] = useState<ModalState>({
@@ -62,9 +72,218 @@ const Admin: React.FC = () => {
     entityKey: null,
     isNew: false,
     data: null,
+    parentId: null,
+    parentIdField: null,
+    disabledFields: [],
   });
 
+  const isSystemAdmin = user?.role.name === "system_admin";
+  const isOrgAdmin = user?.role.name === "school_admin"; // Note: keeping role name as is
+  const isAdmin = isSystemAdmin || isOrgAdmin;
+
+  // Helper function to get entity metadata
+  const getEntity = (entityKey: string): EntityMetadata => {
+    return AUTH_ENTITIES[entityKey] || ENTITIES[entityKey];
+  };
+
+  // Auth admin entities configuration
+  const AUTH_ENTITIES: Record<string, EntityMetadata> = {
+    organizations: {
+      name: "Organizations",
+      fetchFunction: authAdminService.fetchOrganizations,
+      createFunction: authAdminService.createOrganization,
+      updateFunction: authAdminService.updateOrganization,
+      deleteFunction: authAdminService.deleteOrganization,
+      columns: [
+        { field: "id", header: "ID", width: "80px" },
+        { field: "name", header: "Organization Name" },
+        { field: "code", header: "Code", width: "120px" },
+        { field: "city", header: "City", width: "150px" },
+        { field: "state", header: "State", width: "150px" },
+        { field: "isActive", header: "Active", width: "100px" },
+      ],
+      editFields: [
+        {
+          name: "name",
+          label: "Organization Name",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "code",
+          label: "Organization Code",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "address",
+          label: "Address",
+          type: "text",
+          multiline: true,
+          rows: 2,
+        },
+        { name: "city", label: "City", type: "text" },
+        { name: "state", label: "State", type: "text" },
+        { name: "country", label: "Country", type: "text" },
+        { name: "postalCode", label: "Postal Code", type: "text" },
+        { name: "phone", label: "Phone", type: "text" },
+        { name: "email", label: "Email", type: "email", required: true },
+        { name: "website", label: "Website", type: "text" },
+        { name: "isActive", label: "Active", type: "checkbox" },
+      ],
+      onSubmit: async (data: Record<string, any>, isNew: boolean) => {
+        if (isNew) {
+          // Map form data to CreateOrganizationData shape
+          const orgPayload = {
+            name: data.name,
+            code: data.code,
+            address: data.address,
+            city: data.city,
+            state: data.state,
+            country: data.country,
+            postalCode: data.postalCode,
+            phone: data.phone,
+            email: data.email,
+            website: data.website,
+            isActive: data.isActive,
+          };
+          await authAdminService.createOrganization(orgPayload);
+        } else {
+          const { id, ...updateData } = data;
+          await authAdminService.updateOrganization(id, updateData);
+        }
+      },
+    },
+    users: {
+      name: "Users",
+      fetchFunction: async () => {
+        // Organization admins only see users from their organization
+        if (isOrgAdmin && user?.organizationId) {
+          return authAdminService.fetchUsers(user.organizationId);
+        }
+        return authAdminService.fetchUsers();
+      },
+      createFunction: async (data: any) => {
+        // Organization admin: auto-set organization_id to their organization
+        if (isOrgAdmin && user?.organizationId) {
+          data.organizationId = user.organizationId;
+        }
+        // Add default password if not provided
+        if (!data.password) {
+          data.password = "Welcome@123"; // Default password
+        }
+        return authAdminService.createUser(data);
+      },
+      updateFunction: authAdminService.updateUser,
+      deleteFunction: authAdminService.deleteUser,
+      columns: [
+        { field: "id", header: "ID", width: "80px" },
+        { field: "fullName", header: "Full Name" },
+        { field: "username", header: "Username" },
+        { field: "email", header: "Email" },
+        { field: "role.name", header: "Role", width: "150px" },
+        { field: "organization.name", header: "Organization", width: "180px" },
+        { field: "isActive", header: "Active", width: "100px" },
+      ],
+      editFields: [
+        { name: "fullName", label: "Full Name", type: "text", required: true },
+        { name: "username", label: "Username", type: "text", required: true },
+        { name: "email", label: "Email", type: "email", required: true },
+        {
+          name: "password",
+          label: "Password",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "roleId",
+          label: "Role",
+          type: "select",
+          required: true,
+          fetchOptions: async () => {
+            const roles = await authAdminService.fetchRoles();
+            // System admin can assign any role
+            if (isSystemAdmin) {
+              return roles.map((r) => ({ value: r.id, label: r.description }));
+            }
+            // Organization admin can only assign teacher, parent, student roles
+            return roles
+              .filter((r) => ["teacher", "parent", "student"].includes(r.name))
+              .map((r) => ({ value: r.id, label: r.description }));
+          },
+        },
+        {
+          name: "organizationId",
+          label: "Organization",
+          type: "select",
+          required: !isOrgAdmin, // Not required for org admin (auto-filled)
+          fetchOptions: async () => {
+            if (isOrgAdmin && user?.organization) {
+              // Organization admin can only assign to their organization
+              return [
+                { value: user.organizationId!, label: user.organization.name },
+              ];
+            }
+            // System admin can assign to any organization
+            const organizations = await authAdminService.fetchOrganizations();
+            return organizations.map((o) => ({ value: o.id, label: o.name }));
+          },
+        },
+        { name: "isActive", label: "Active", type: "checkbox" },
+      ],
+      onSubmit: async (data: Record<string, any>, isNew: boolean) => {
+        if (isNew) {
+          // Organization admin: auto-set organization_id to their organization
+          if (isOrgAdmin && user?.organizationId) {
+            data.organizationId = user.organizationId;
+          }
+          // Add default password if not provided
+          if (!data.password) {
+            data.password = "Welcome@123";
+          }
+          // Ensure required fields for CreateUserData
+          const userPayload = {
+            email: data.email,
+            username: data.username,
+            password: data.password,
+            full_name: data.fullName ?? data.full_name, // handle both camelCase and snake_case
+            role_id: data.roleId ?? data.role_id,
+            organization_id: data.organizationId ?? data.organization_id,
+            is_active: data.isActive ?? data.is_active,
+          };
+          await authAdminService.createUser(userPayload);
+        } else {
+          // Update user - password field is not included/editable
+          const { id, password, ...updateData } = data;
+          await authAdminService.updateUser(id, updateData);
+        }
+      },
+    },
+  };
+
   const entities: EntityItem[] = [
+    // Auth entities (only for admins)
+    ...(isSystemAdmin
+      ? [
+          {
+            key: "organizations",
+            label: "Manage Organizations",
+            icon: <BusinessIcon />,
+            metadata: AUTH_ENTITIES.organizations,
+          },
+        ]
+      : []),
+    ...(isAdmin
+      ? [
+          {
+            key: "users",
+            label: "Manage Users",
+            icon: <PeopleIcon />,
+            metadata: AUTH_ENTITIES.users,
+          },
+        ]
+      : []),
+    // Content entities
     {
       key: "states",
       label: "States",
@@ -81,6 +300,8 @@ const Admin: React.FC = () => {
 
   const getEntityIcon = (key: string) => {
     const iconMap: Record<string, React.ReactElement> = {
+      organizations: <BusinessIcon />,
+      users: <PeopleIcon />,
       states: <Public />,
       boards: <School />,
       classes: <ClassIcon />,
@@ -102,7 +323,8 @@ const Admin: React.FC = () => {
     setSelectedMenu(null);
 
     const paneId = `${entityKey}-${Date.now()}`;
-    const entity = ENTITIES[entityKey];
+    // Check both AUTH_ENTITIES and ENTITIES
+    const entity = AUTH_ENTITIES[entityKey] || ENTITIES[entityKey];
 
     // Add loading pane
     setPanes([
@@ -144,7 +366,7 @@ const Admin: React.FC = () => {
 
   const handleRowClick = async (paneIndex: number, row: any) => {
     const currentPane = panes[paneIndex];
-    const entity = ENTITIES[currentPane.entityKey];
+    const entity = getEntity(currentPane.entityKey);
 
     // If this entity has no child, don't do anything
     if (!entity.childEntity || !entity.childFetchFunction) {
@@ -158,7 +380,7 @@ const Admin: React.FC = () => {
     newPanes[paneIndex] = { ...currentPane, selectedRow: row };
 
     const childEntityKey = entity.childEntity;
-    const childEntity = ENTITIES[childEntityKey];
+    const childEntity = getEntity(childEntityKey);
     const paneId = `${childEntityKey}-${row.id}-${Date.now()}`;
 
     // Add loading pane for child
@@ -210,23 +432,80 @@ const Admin: React.FC = () => {
     setPanes(panes.slice(0, paneIndex));
   };
 
-  const handleOpenEditModal = (entityKey: string, row?: any) => {
+  const handleOpenEditModal = (
+    entityKey: string,
+    row?: any,
+    parentId?: number,
+    parentIdField?: string,
+    additionalDefaults?: Record<string, any>,
+    disabledFields?: string[],
+  ) => {
+    const initialData = row || {};
+    // If adding a new item with a parent context, auto-populate the parent ID field
+    if (!row && parentId && parentIdField) {
+      initialData[parentIdField] = parentId;
+    }
+    // Apply additional default values
+    if (!row && additionalDefaults) {
+      Object.assign(initialData, additionalDefaults);
+    }
     setModal({
       open: true,
       entityKey,
       isNew: !row,
-      data: row || {},
+      data: initialData,
+      parentId: !row ? parentId : undefined,
+      parentIdField: !row ? parentIdField : undefined,
+      disabledFields: disabledFields || [],
     });
   };
 
   const handleCloseModal = () => {
-    setModal({ open: false, entityKey: null, isNew: false, data: null });
+    setModal({
+      open: false,
+      entityKey: null,
+      isNew: false,
+      data: null,
+      parentId: null,
+      parentIdField: null,
+      disabledFields: [],
+    });
+  };
+
+  const handleToggleUserActivation = async (user: any) => {
+    try {
+      const newIsActive = !user.isActive;
+      await authAdminService.updateUser(user.id, {
+        is_active: newIsActive,
+      } as any);
+      
+      // Refresh the users pane
+      const usersPaneIndex = panes.findIndex((p) => p.entityKey === "users");
+      if (usersPaneIndex >= 0) {
+        const entity = getEntity("users");
+        const result = await entity.fetchFunction();
+        
+        setPanes((prev) => {
+          const updated = [...prev];
+          updated[usersPaneIndex] = {
+            ...updated[usersPaneIndex],
+            data: result,
+          };
+          return updated;
+        });
+      }
+    } catch (err) {
+      console.error("Failed to toggle user activation:", err);
+      alert(
+        "Failed to update user activation status. Please try again.",
+      );
+    }
   };
 
   const handleModalSubmit = async (formData: Record<string, any>) => {
     if (!modal.entityKey) return;
 
-    const entity = ENTITIES[modal.entityKey];
+    const entity = getEntity(modal.entityKey);
     if (!entity.onSubmit) {
       throw new Error("No submit handler for this entity");
     }
@@ -239,7 +518,7 @@ const Admin: React.FC = () => {
       try {
         let result: any[] = [];
         if (currentPane.entityKey === modal.entityKey) {
-          result = await ENTITIES[currentPane.entityKey].fetchFunction();
+          result = await getEntity(currentPane.entityKey).fetchFunction();
         }
 
         setPanes((prev) => {
@@ -260,7 +539,67 @@ const Admin: React.FC = () => {
 
   const handleAddClick = (paneIndex: number) => {
     const pane = panes[paneIndex];
-    handleOpenEditModal(pane.entityKey);
+    const entity = getEntity(pane.entityKey);
+
+    // If this pane has a parent pane, get the parent ID to auto-populate
+    let parentId: number | undefined;
+    let parentIdField: string | undefined;
+
+    if (paneIndex > 0) {
+      const parentPane = panes[paneIndex - 1];
+      const parentEntity = getEntity(parentPane.entityKey);
+
+      // Check if current entity should have parent ID populated
+      if (
+        parentEntity.childEntity === pane.entityKey &&
+        parentPane.selectedRow
+      ) {
+        // Look for parent ID field (supports both snake_case like state_id and camelCase like boardId)
+        parentIdField = entity.editFields?.find(
+          (f) =>
+            (f.name.includes("_id") || f.name.includes("Id")) &&
+            f.name !== "id",
+        )?.name;
+
+        if (parentIdField) {
+          const sourceField = parentEntity.parentIdField || "id";
+          parentId = parentPane.selectedRow[sourceField];
+        }
+      }
+    }
+
+    // Prepare additional default values
+    const additionalDefaults: Record<string, any> = {};
+    const fieldsToDisable: string[] = [];
+
+    // Set isActive to true by default
+    if (entity.editFields?.some((f) => f.name === "isActive")) {
+      additionalDefaults.isActive = true;
+    }
+
+    // For entities with displayOrder, set it to the next number
+    if (entity.editFields?.some((f) => f.name === "displayOrder")) {
+      const maxDisplayOrder = pane.data.reduce((max, item) => {
+        const order = item.displayOrder || 0;
+        return order > max ? order : max;
+      }, 0);
+      additionalDefaults.displayOrder = maxDisplayOrder + 1;
+      fieldsToDisable.push("displayOrder");
+    }
+
+    // Add parent ID field to disabled fields
+    if (parentIdField) {
+      fieldsToDisable.push(parentIdField);
+    }
+
+    handleOpenEditModal(
+      pane.entityKey,
+      undefined,
+      parentId,
+      parentIdField,
+      additionalDefaults,
+      fieldsToDisable,
+    );
   };
 
   return (
@@ -385,7 +724,7 @@ const Admin: React.FC = () => {
               </Paper>
             ) : (
               panes.map((pane, index) => {
-                const entity = ENTITIES[pane.entityKey];
+                const entity = getEntity(pane.entityKey);
                 const hasChildren = !!entity.childEntity;
 
                 return (
@@ -470,6 +809,31 @@ const Admin: React.FC = () => {
                           onEdit={(row) =>
                             handleOpenEditModal(pane.entityKey, row)
                           }
+                          customActions={
+                            pane.entityKey === "users"
+                              ? [
+                                  {
+                                    label: "Activate User",
+                                    icon: (
+                                      <CheckCircle
+                                        fontSize="small"
+                                        color="success"
+                                      />
+                                    ),
+                                    onClick: handleToggleUserActivation,
+                                    condition: (row: any) => !row.isActive,
+                                  },
+                                  {
+                                    label: "Deactivate User",
+                                    icon: (
+                                      <Block fontSize="small" color="error" />
+                                    ),
+                                    onClick: handleToggleUserActivation,
+                                    condition: (row: any) => row.isActive,
+                                  },
+                                ]
+                              : undefined
+                          }
                         />
                       </Box>
                     </Paper>
@@ -485,12 +849,20 @@ const Admin: React.FC = () => {
         <EditModal
           open={modal.open}
           title={`${modal.isNew ? "Add New" : "Edit"} ${
-            ENTITIES[modal.entityKey].name
+            getEntity(modal.entityKey).name
           }`}
-          fields={ENTITIES[modal.entityKey].editFields || []}
+          fields={
+            // Filter out password field when editing users
+            modal.entityKey === "users" && !modal.isNew
+              ? (getEntity(modal.entityKey).editFields || []).filter(
+                  (field) => field.name !== "password",
+                )
+              : getEntity(modal.entityKey).editFields || []
+          }
           initialData={modal.data || {}}
           onClose={handleCloseModal}
           onSubmit={handleModalSubmit}
+          disabledFields={modal.disabledFields || []}
         />
       )}
     </Container>

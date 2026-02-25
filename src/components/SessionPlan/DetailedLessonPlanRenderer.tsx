@@ -144,7 +144,9 @@ const DetailedLessonPlanRenderer = ({
                 variant="body2"
                 sx={{ marginBottom: 0.5 }}
               >
-                {definition}
+                {typeof definition === 'string' 
+                  ? definition 
+                  : `${definition.term}: ${definition.definition}`}
               </Typography>
             ))}
           </Box>

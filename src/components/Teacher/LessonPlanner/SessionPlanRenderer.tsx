@@ -21,6 +21,7 @@ import {
 } from "@mui/icons-material";
 import { generateSessionDetail } from "../../../services/teacherServices/apiService";
 import ErrorModal from "../../ErrorModal";
+import AlertModal from "../../Common/AlertModal";
 import {
   downloadAsPDF,
   copyToClipboard,
@@ -51,6 +52,14 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
     open: false,
     title: "",
     message: "",
+  });
+
+  // Modal state for alerts
+  const [alertModal, setAlertModal] = useState({
+    open: false,
+    title: "",
+    message: "",
+    type: "info" as "success" | "error" | "info" | "warning",
   });
 
   const handleCloseModal = () => {
@@ -84,7 +93,7 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
 
   const convertContentToText = (
     content: SessionDetailContent | null,
-    htmlContent?: string
+    htmlContent?: string,
   ): string => {
     if (content) {
       // Convert structured content to text
@@ -112,7 +121,10 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
       text += "BOARD WORK PLAN\n";
       text += "Definitions:\n";
       content.boardWorkPlan.definitions.forEach((definition) => {
-        text += `• ${definition}\n`;
+        const defText = typeof definition === 'string' 
+          ? definition 
+          : `${definition.term}: ${definition.definition}`;
+        text += `• ${defText}\n`;
       });
       text += "\nLaws/Rules:\n";
       content.boardWorkPlan.lawsOrRules.forEach((rule) => {
@@ -206,7 +218,7 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
         text += `Found ${
           content.resources.youtubeVideos.totalVideos
         } videos for keywords: ${content.resources.youtubeVideos.keywordsSearched.join(
-          ", "
+          ", ",
         )}\n`;
       }
 
@@ -232,7 +244,7 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
   const handleCopyToClipboard = async () => {
     const textContent = convertContentToText(
       modalState.content,
-      modalState.htmlContent
+      modalState.htmlContent,
     );
     try {
       const success = await copyToClipboard(textContent);
@@ -285,7 +297,7 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
                 <strong>${step.time}:</strong> ${step.teacherLines}<br>
                 <em>Student Activity:</em> ${step.studentActivity}
             </li>
-          `
+          `,
           )
           .join("")}
     </ol>
@@ -298,7 +310,12 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
     <h3>Definitions</h3>
     <ul>
         ${content.boardWorkPlan.definitions
-          .map((definition) => `<li>${definition}</li>`)
+          .map((definition) => {
+            const defText = typeof definition === 'string'
+              ? definition
+              : `${definition.term}: ${definition.definition}`;
+            return `<li>${defText}</li>`;
+          })
           .join("")}
     </ul>
     <h3>Laws/Rules</h3>
@@ -306,7 +323,7 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
         ${content.boardWorkPlan.lawsOrRules
           .map(
             (rule) =>
-              `<li><strong>${rule.name}:</strong> ${rule.statement} (${rule.notation})</li>`
+              `<li><strong>${rule.name}:</strong> ${rule.statement} (${rule.notation})</li>`,
           )
           .join("")}
     </ul>
@@ -315,7 +332,7 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
         ${content.boardWorkPlan.diagramsToDraw
           .map(
             (diagram) =>
-              `<li><strong>${diagram.label}:</strong> ${diagram.instructions}</li>`
+              `<li><strong>${diagram.label}:</strong> ${diagram.instructions}</li>`,
           )
           .join("")}
     </ul>
@@ -340,7 +357,7 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
               ${subtopic.comparisonTable.headers
                 .map(
                   (header) =>
-                    `<th style="padding: 8px; background-color: #f0f0f0;">${header}</th>`
+                    `<th style="padding: 8px; background-color: #f0f0f0;">${header}</th>`,
                 )
                 .join("")}
             </tr>
@@ -349,14 +366,14 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
                 (row) =>
                   `<tr>${row
                     .map((cell) => `<td style="padding: 8px;">${cell}</td>`)
-                    .join("")}</tr>`
+                    .join("")}</tr>`,
               )
               .join("")}
           </table>
         `
             : ""
         }
-      `
+      `,
       )
       .join("")}
 </div>
@@ -372,11 +389,11 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
             (activity) => `
             <li>
                 <strong>${activity.name}</strong> (${activity.time}): ${
-              activity.expectedOutcome
-            }<br>
+                  activity.expectedOutcome
+                }<br>
                 <em>Steps:</em> ${activity.steps.join(", ")}
             </li>
-          `
+          `,
           )
           .join("")}
     </ul>
@@ -385,7 +402,7 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
         ${content.activities.practiceProblems
           .map(
             (problem) =>
-              `<li>${problem.problem} <em>(Answer: ${problem.answer})</em></li>`
+              `<li>${problem.problem} <em>(Answer: ${problem.answer})</em></li>`,
           )
           .join("")}
     </ol>
@@ -418,7 +435,7 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
         ${content.quickAssessment.fiveQandA
           .map(
             (qa) =>
-              `<li><strong>Q:</strong> ${qa.q}<br><strong>A:</strong> ${qa.a}</li>`
+              `<li><strong>Q:</strong> ${qa.q}<br><strong>A:</strong> ${qa.a}</li>`,
           )
           .join("")}
     </ol>
@@ -490,15 +507,15 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
                       video.duration
                     }</td>
                     <td style="padding: 8px; text-align: center; vertical-align: top;">${parseInt(
-                      video.viewCount
+                      video.viewCount,
                     ).toLocaleString()}</td>
                     <td style="padding: 8px; vertical-align: top; word-break: break-all; font-size: 0.8em;">
                         <a href="${video.videoUrl}" target="_blank">${
-                  video.videoUrl
-                }</a>
+                          video.videoUrl
+                        }</a>
                     </td>
                 </tr>
-                `
+                `,
               )
               .join("")}
         </tbody>
@@ -507,8 +524,8 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
         Found ${
           content.resources.youtubeVideos.totalVideos
         } videos for keywords: ${content.resources.youtubeVideos.keywordsSearched.join(
-            ", "
-          )}
+          ", ",
+        )}
     </p>
     `
         : ""
@@ -536,9 +553,17 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
 
     // Import the downloadAsPDF function from utils
     const filename = modalState.title.replace(/[^a-z0-9]/gi, "_").toLowerCase();
-    downloadAsPDF(htmlContent, filename, modalState.title);
-
-    handleExportMenuClose();
+    try {
+      downloadAsPDF(htmlContent, filename, modalState.title);
+      handleExportMenuClose();
+    } catch (err) {
+      setAlertModal({
+        open: true,
+        title: "Export Error",
+        message: err instanceof Error ? err.message : "Failed to export PDF",
+        type: "error",
+      });
+    }
   };
 
   return (
@@ -706,6 +731,15 @@ const SessionPlanRenderer: React.FC<SessionPlanRendererProps> = ({
         onClose={handleCloseErrorModal}
         title={errorModalState.title}
         message={errorModalState.message}
+      />
+
+      {/* Alert Modal */}
+      <AlertModal
+        open={alertModal.open}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+        onClose={() => setAlertModal({ ...alertModal, open: false })}
       />
     </Box>
   );
