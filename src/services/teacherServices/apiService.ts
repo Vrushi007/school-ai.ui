@@ -1,4 +1,4 @@
-import { API_AI_URL, API_CONTENT_URL, makePostRequest } from "../baseService";
+import { API_AI_URL, API_CONTENT_URL, makeAuthenticatedPostRequest } from "../baseService";
 import { mapQuestionType } from "./helper";
 import {
   Question,
@@ -16,7 +16,7 @@ export const generateSessionDetail = async (
   request: SessionDetailContentRequest
 ): Promise<SessionDetailContentResponse> => {
   try {
-    const data = await makePostRequest(
+    const data = await makeAuthenticatedPostRequest(
       `${API_CONTENT_URL}/lesson-plans/get-session-detailed-content`,
       request
     );
@@ -46,7 +46,7 @@ export const generateQuestions = async (
       total_marks: totalMarks,
     };
 
-    const data = await makePostRequest(
+    const data = await makeAuthenticatedPostRequest(
       `${API_AI_URL}/api/generate-questions`,
       requestBody
     );
@@ -117,7 +117,7 @@ export const groupKPsIntoSessions = async (
   request: KPGroupingRequest
 ): Promise<KPGroupingResponse> => {
   try {
-    const data = await makePostRequest(
+    const data = await makeAuthenticatedPostRequest(
       `${API_CONTENT_URL}/lesson-plans/group-kps-into-sessions`,
       request
     );
@@ -134,7 +134,7 @@ export const generateSessionSummary = async (
   request: SessionSummaryRequest
 ): Promise<SessionSummaryResponse> => {
   try {
-    const data = await makePostRequest(
+    const data = await makeAuthenticatedPostRequest(
       `${API_CONTENT_URL}/lesson-plans/generate-session-summary`,
       request
     );

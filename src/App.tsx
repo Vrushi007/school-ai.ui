@@ -4,6 +4,7 @@ import { Box, Container, Paper, Typography, Button } from "@mui/material";
 import { Routes, Route, Link, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import LessonPlanner from "./components/Teacher/LessonPlanner/LessonPlanner";
+import MyLessonPlans from "./components/Teacher/MyLessonPlans/MyLessonPlans";
 import Teacher from "./components/Teacher/Teacher";
 import { ROUTES } from "./constants/common";
 import companyLogo from "../src/assets/images/company-logo.jpeg";
@@ -222,6 +223,14 @@ const AppContent: React.FC = () => {
           element={
             <ProtectedRoute allowedRoles={[3]}>
               <LessonPlanner />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.MY_LESSON_PLANS}
+          element={
+            <ProtectedRoute allowedRoles={[3]}>
+              <MyLessonPlans />
             </ProtectedRoute>
           }
         />

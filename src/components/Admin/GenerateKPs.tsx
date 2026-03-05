@@ -45,8 +45,8 @@ const GenerateKPs: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState<number | "">("");
   const [selectedSubject, setSelectedSubject] = useState<number | "">("");
   const [selectedChapter, setSelectedChapter] = useState<number | "">("");
+  const [selectedProvider, setSelectedProvider] = useState<string>("sarvam");
 
-  const [syllabusContent, setSyllabusContent] = useState<string>("");
   const [generatedKPs, setGeneratedKPs] = useState<KnowledgePoint[]>([]);
   const [existingKPs, setExistingKPs] = useState<KnowledgePoint[]>([]);
   const [isNewlyGenerated, setIsNewlyGenerated] = useState(false);
@@ -187,21 +187,6 @@ const GenerateKPs: React.FC = () => {
     fetchExistingKPs();
   }, [selectedChapter]);
 
-  const handleLoadSampleSyllabus = () => {
-    const sample = `5. Balancing chemical equations using law of conservation of mass
-6. Types of chemical changes and decomposition (A + B = AB), Displacement (A + BC = AC + B), Double displacement (AB + CD = AD + CB)
-7. Exothermic reactions (release heat) and Endothermic reactions (absorb heat)
-8. Oxidation (addition of oxygen/removal of nitrogen) and Reduction (removal of oxygen/addition of hydrogen)
-9. Corrosion- deterioration of metals due to reaction with environment
-10. Rancidity – oxidation of fats and oils causing unpleasant smell
-
-Prerequisites:
-- Atom and molecule concepts (Class 8)
-- Law of conservation of mass (Class 8)
-- Physical and chemical changes (Class 7)`;
-    setSyllabusContent(sample);
-  };
-
   const handleGenerateKPs = async () => {
     if (
       !selectedBoard ||
@@ -215,6 +200,7 @@ Prerequisites:
 
     setGenerating(true);
     setError(null);
+    setGeneratedKPs([]); // Clear previous KPs when starting new generation
 
     try {
       // Get the selected entities
@@ -243,6 +229,7 @@ Prerequisites:
         chapter: selectedChapterObj.title,
         board: selectedBoardObj.name,
         section: null,
+        provider: selectedProvider,
       });
 
       setGeneratedKPs(knowledgePoints);
@@ -391,6 +378,20 @@ Prerequisites:
               </Select>
             </FormControl>
           </Box>
+
+          <Box sx={{ flex: "1 1 200px", minWidth: "200px" }}>
+            <FormControl fullWidth disabled={loading}>
+              <InputLabel>AI Provider</InputLabel>
+              <Select
+                value={selectedProvider}
+                label="AI Provider"
+                onChange={(e) => setSelectedProvider(e.target.value as string)}
+              >
+                <MenuItem value="openai">OpenAI</MenuItem>
+                <MenuItem value="sarvam">SarvamAI</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
         </Box>
       </Paper>
 
@@ -417,6 +418,15 @@ Prerequisites:
                   <li>Key terms and synonyms</li>
                   <li>Assessment criteria</li>
                 </ul>
+                <Typography
+                  variant="body2"
+                  component="div"
+                  sx={{ mt: 1, fontStyle: "italic", color: "info.dark" }}
+                >
+                  💡 Tip: Not satisfied with the results? Try switching the AI
+                  Provider (OpenAI ↔ SarvamAI) and generate again for different
+                  perspectives.
+                </Typography>
               </Alert>
 
               {/* Generate Button */}
@@ -485,6 +495,16 @@ Prerequisites:
               </Button>
             )}
           </Box>
+
+          {isNewlyGenerated && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              <Typography variant="body2">
+                💡 Not satisfied with these knowledge points? Try switching to{" "}
+                {selectedProvider === "openai" ? "SarvamAI" : "OpenAI"} and
+                generate again for different results.
+              </Typography>
+            </Alert>
+          )}
 
           <Stack spacing={2}>
             {generatedKPs.map((kp, index) => (

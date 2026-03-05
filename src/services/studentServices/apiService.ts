@@ -1,4 +1,4 @@
-import { API_AI_URL, makePostRequest } from "../baseService";
+import { API_AI_URL, makeAuthenticatedPostRequest } from "../baseService";
 import { QuestionRequest, AnswerResponse } from "./types";
 
 /**
@@ -14,7 +14,7 @@ export const askQuestion = async (
   questionData: QuestionRequest
 ): Promise<AnswerResponse> => {
   try {
-    const response = await makePostRequest(
+    const response = await makeAuthenticatedPostRequest(
       `${API_AI_URL}/api/get-answers`,
       questionData
     );

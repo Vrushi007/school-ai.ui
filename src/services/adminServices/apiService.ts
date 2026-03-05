@@ -1,8 +1,8 @@
 import {
   API_AI_URL,
   API_CONTENT_URL,
-  makeGetRequest,
-  makePostRequest,
+  makeAuthenticatedGetRequest,
+  makeAuthenticatedPostRequest,
 } from "../baseService";
 
 export interface GenerateKPsRequest {
@@ -11,6 +11,7 @@ export interface GenerateKPsRequest {
   chapter: string;
   board: string;
   section?: string | null;
+  provider?: string | null; // AI provider: 'openai' or 'sarvam'
 }
 
 export interface SaveKnowledgePointRequest {
@@ -82,7 +83,7 @@ export const getKnowledgePointsByChapter = async (
   chapterId: number,
 ): Promise<KnowledgePoint[]> => {
   try {
-    const result = await makeGetRequest(
+    const result = await makeAuthenticatedGetRequest(
       `${API_CONTENT_URL}/key-points/chapter/${chapterId}`,
     );
 
@@ -131,7 +132,7 @@ export const generateKnowledgePoints = async (
   request: GenerateKPsRequest,
 ): Promise<KnowledgePoint[]> => {
   try {
-    const result = await makePostRequest(
+    const result = await makeAuthenticatedPostRequest(
       `${API_AI_URL}/api/generate-knowledge-points`,
       request,
     );
@@ -174,7 +175,7 @@ export const saveKnowledgePoints = async (
         cognitiveLevel: kp.bloomLevel,
         skillIntent: "Explain", // Default value - can be enhanced later
         content: {
-          // Store full KP object as JSONB content (makePostRequest converts to snake_case)
+          // Store full KP object as JSONB content (makeAuthenticatedPostRequest converts to snake_case)
           kpId: kp.kpId,
           kpTitle: kp.kpTitle,
           kpDescription: kp.kpDescription,
@@ -201,7 +202,7 @@ export const saveKnowledgePoints = async (
     );
 
     // Call the API to save knowledge points
-    const result = await makePostRequest(
+    const result = await makeAuthenticatedPostRequest(
       `${API_CONTENT_URL}/key-points/`,
       saveRequests,
     );

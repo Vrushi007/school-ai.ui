@@ -168,9 +168,9 @@ const Admin: React.FC = () => {
         if (isOrgAdmin && user?.organizationId) {
           data.organizationId = user.organizationId;
         }
-        // Add default password if not provided
-        if (!data.password) {
-          data.password = "Welcome@123"; // Default password
+        // Remove password field; backend will generate password
+        if (data.password) {
+          delete data.password;
         }
         return authAdminService.createUser(data);
       },
@@ -189,12 +189,6 @@ const Admin: React.FC = () => {
         { name: "fullName", label: "Full Name", type: "text", required: true },
         { name: "username", label: "Username", type: "text", required: true },
         { name: "email", label: "Email", type: "email", required: true },
-        {
-          name: "password",
-          label: "Password",
-          type: "text",
-          required: true,
-        },
         {
           name: "roleId",
           label: "Role",
@@ -216,20 +210,12 @@ const Admin: React.FC = () => {
           name: "organizationId",
           label: "Organization",
           type: "select",
-          required: !isOrgAdmin, // Not required for org admin (auto-filled)
+          required: isSystemAdmin,
           fetchOptions: async () => {
-            if (isOrgAdmin && user?.organization) {
-              // Organization admin can only assign to their organization
-              return [
-                { value: user.organizationId!, label: user.organization.name },
-              ];
-            }
-            // System admin can assign to any organization
-            const organizations = await authAdminService.fetchOrganizations();
-            return organizations.map((o) => ({ value: o.id, label: o.name }));
+            const orgs = await authAdminService.fetchOrganizations();
+            return orgs.map((o) => ({ value: o.id, label: o.name }));
           },
         },
-        { name: "isActive", label: "Active", type: "checkbox" },
       ],
       onSubmit: async (data: Record<string, any>, isNew: boolean) => {
         if (isNew) {
@@ -237,19 +223,13 @@ const Admin: React.FC = () => {
           if (isOrgAdmin && user?.organizationId) {
             data.organizationId = user.organizationId;
           }
-          // Add default password if not provided
-          if (!data.password) {
-            data.password = "Welcome@123";
-          }
           // Ensure required fields for CreateUserData
           const userPayload = {
             email: data.email,
             username: data.username,
-            password: data.password,
             full_name: data.fullName ?? data.full_name, // handle both camelCase and snake_case
             role_id: data.roleId ?? data.role_id,
             organization_id: data.organizationId ?? data.organization_id,
-            is_active: data.isActive ?? data.is_active,
           };
           await authAdminService.createUser(userPayload);
         } else {

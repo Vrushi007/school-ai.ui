@@ -149,8 +149,12 @@ export const transformCamelCaseToSnakeCase = (obj: any) => {
 // Helper function to make authenticated GET requests
 export const makeAuthenticatedGetRequest = async <T>(
   endpoint: string,
-  token: string,
 ): Promise<T> => {
+  const token = localStorage.getItem("access_token");
+  if (!token) {
+    throw new Error("No authentication token found. Please login.");
+  }
+  
   try {
     const response = await fetch(endpoint, {
       method: "GET",
@@ -176,8 +180,12 @@ export const makeAuthenticatedGetRequest = async <T>(
 export const makeAuthenticatedPostRequest = async <T>(
   endpoint: string,
   body: any,
-  token: string,
 ): Promise<T> => {
+  const token = localStorage.getItem("access_token");
+  if (!token) {
+    throw new Error("No authentication token found. Please login.");
+  }
+  
   try {
     const response = await fetch(endpoint, {
       method: "POST",
@@ -219,8 +227,12 @@ export const makeAuthenticatedPostRequest = async <T>(
 export const makeAuthenticatedPutRequest = async <T>(
   endpoint: string,
   body: any,
-  token: string,
 ): Promise<T> => {
+  const token = localStorage.getItem("access_token");
+  if (!token) {
+    throw new Error("No authentication token found. Please login.");
+  }
+  
   try {
     const response = await fetch(endpoint, {
       method: "PUT",
@@ -256,8 +268,12 @@ export const makeAuthenticatedPutRequest = async <T>(
 export const makeAuthenticatedPatchRequest = async <T>(
   endpoint: string,
   body: any,
-  token: string,
 ): Promise<T> => {
+  const token = localStorage.getItem("access_token");
+  if (!token) {
+    throw new Error("No authentication token found. Please login.");
+  }
+  
   try {
     const response = await fetch(endpoint, {
       method: "PATCH",
@@ -292,8 +308,12 @@ export const makeAuthenticatedPatchRequest = async <T>(
 // Helper function to make authenticated DELETE requests
 export const makeAuthenticatedDeleteRequest = async (
   endpoint: string,
-  token: string,
 ): Promise<void> => {
+  const token = localStorage.getItem("access_token");
+  if (!token) {
+    throw new Error("No authentication token found. Please login.");
+  }
+  
   try {
     const response = await fetch(endpoint, {
       method: "DELETE",

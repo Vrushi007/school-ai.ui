@@ -1,8 +1,8 @@
 import {
   API_CONTENT_URL,
-  makeGetRequest,
-  makePostRequest,
-  makePutRequest,
+  makeAuthenticatedGetRequest,
+  makeAuthenticatedPostRequest,
+  makeAuthenticatedPutRequest,
 } from "./baseService";
 
 // Type definitions for Content Service entities
@@ -10,7 +10,7 @@ export interface State {
   id: number;
   name: string;
   code: string;
-  is_active: boolean;
+  isActive: boolean;
 }
 
 export interface Board {
@@ -91,8 +91,8 @@ export interface KeyPoint {
 
 export interface Session {
   id: number;
-  chapter_id: number;
-  session_number: number;
+  chapterId: number;
+  sessionNumber: number;
   title: string;
   summary: string | null;
   duration: string | null;
@@ -100,16 +100,16 @@ export interface Session {
 
 export interface SessionKeyPoint {
   id: number;
-  session_id: number;
-  key_point_id: number;
+  sessionId: number;
+  keyPointId: number;
   order: number;
 }
 
 export interface SessionDetails {
   id: number;
-  session_id: number;
+  sessionId: number;
   introduction: string | null;
-  main_content: Record<string, any> | null;
+  mainContent: Record<string, any> | null;
   activities: Record<string, any> | null;
   assessment: Record<string, any> | null;
   resources: Record<string, any> | null;
@@ -118,35 +118,37 @@ export interface SessionDetails {
 
 export interface Question {
   id: number;
-  chapter_id: number;
-  question_text: string;
-  question_type: string;
+  chapterId: number;
+  questionText: string;
+  questionType: string;
   difficulty: string;
   marks: number;
-  metadata_json: Record<string, any> | null;
+  metadataJson: Record<string, any> | null;
 }
 
 // API functions for each entity
 export const getStates = async (skip = 0, limit = 100): Promise<State[]> => {
-  return makeGetRequest<State>(
+  return makeAuthenticatedGetRequest<State[]>(
     `${API_CONTENT_URL}/states?skip=${skip}&limit=${limit}`,
   );
 };
 
 export const getBoards = async (skip = 0, limit = 100): Promise<Board[]> => {
-  return makeGetRequest<Board>(
+  return makeAuthenticatedGetRequest<Board[]>(
     `${API_CONTENT_URL}/boards?skip=${skip}&limit=${limit}`,
   );
 };
 
 export const getClassesByBoard = async (boardId: number): Promise<Class[]> => {
-  return makeGetRequest<Class>(`${API_CONTENT_URL}/classes/${boardId}`);
+  return makeAuthenticatedGetRequest<Class[]>(
+    `${API_CONTENT_URL}/classes/${boardId}`,
+  );
 };
 
 export const getSubjectsByClass = async (
   classId: number,
 ): Promise<Subject[]> => {
-  return makeGetRequest<Subject>(
+  return makeAuthenticatedGetRequest<Subject[]>(
     `${API_CONTENT_URL}/subjects/classes/${classId}`,
   );
 };
@@ -154,7 +156,7 @@ export const getSubjectsByClass = async (
 export const getChaptersBySubject = async (
   subjectId: number,
 ): Promise<Chapter[]> => {
-  return makeGetRequest<Chapter>(
+  return makeAuthenticatedGetRequest<Chapter[]>(
     `${API_CONTENT_URL}/chapters/subjects/${subjectId}`,
   );
 };
@@ -162,15 +164,22 @@ export const getChaptersBySubject = async (
 export const getKeyPointsByChapter = async (
   chapterId: number,
 ): Promise<KeyPoint[]> => {
-  return makeGetRequest<KeyPoint>(
+  return makeAuthenticatedGetRequest<KeyPoint[]>(
     `${API_CONTENT_URL}/key-points/chapter/${chapterId}`,
+  );
+};
+
+export const getKeyPointsByIds = async (ids: number[]): Promise<KeyPoint[]> => {
+  return makeAuthenticatedPostRequest<KeyPoint[]>(
+    `${API_CONTENT_URL}/key-points/by-ids`,
+    { ids },
   );
 };
 
 export const getSessionsByChapter = async (
   chapterId: number,
 ): Promise<Session[]> => {
-  return makeGetRequest<Session>(
+  return makeAuthenticatedGetRequest<Session[]>(
     `${API_CONTENT_URL}/sessions/chapters/${chapterId}`,
   );
 };
@@ -178,7 +187,7 @@ export const getSessionsByChapter = async (
 export const getSessionKeyPointsBySession = async (
   sessionId: number,
 ): Promise<SessionKeyPoint[]> => {
-  return makeGetRequest<SessionKeyPoint>(
+  return makeAuthenticatedGetRequest<SessionKeyPoint[]>(
     `${API_CONTENT_URL}/session-key-points/sessions/${sessionId}`,
   );
 };
@@ -186,7 +195,7 @@ export const getSessionKeyPointsBySession = async (
 export const getSessionDetailsBySession = async (
   sessionId: number,
 ): Promise<SessionDetails[]> => {
-  return makeGetRequest<SessionDetails>(
+  return makeAuthenticatedGetRequest<SessionDetails[]>(
     `/session-details/sessions/${sessionId}`,
   );
 };
@@ -194,33 +203,42 @@ export const getSessionDetailsBySession = async (
 export const getQuestionsByChapter = async (
   chapterId: number,
 ): Promise<Question[]> => {
-  return makeGetRequest<Question>(`/questions/chapters/${chapterId}`);
+  return makeAuthenticatedGetRequest<Question[]>(
+    `/questions/chapters/${chapterId}`,
+  );
+};
+
+// Lesson Plans functions
+export const getMyLessonPlans = async (): Promise<any> => {
+  return makeAuthenticatedGetRequest<any>(
+    `${API_CONTENT_URL}/lesson-plans/my-lesson-plans`,
+  );
 };
 
 // Create/Update functions for each entity
 export const createBoard = async (data: Omit<Board, "id">) =>
-  makePostRequest(`${API_CONTENT_URL}/boards`, data);
+  makeAuthenticatedPostRequest(`${API_CONTENT_URL}/boards`, data);
 
 export const updateBoard = async (id: number, data: Partial<Board>) =>
-  makePutRequest(`${API_CONTENT_URL}/boards/${id}`, data);
+  makeAuthenticatedPutRequest(`${API_CONTENT_URL}/boards/${id}`, data);
 
 export const createClass = async (data: Omit<Class, "id">) =>
-  makePostRequest(`${API_CONTENT_URL}/classes`, data);
+  makeAuthenticatedPostRequest(`${API_CONTENT_URL}/classes`, data);
 
 export const updateClass = async (id: number, data: Partial<Class>) =>
-  makePutRequest(`${API_CONTENT_URL}/classes/${id}`, data);
+  makeAuthenticatedPutRequest(`${API_CONTENT_URL}/classes/${id}`, data);
 
 export const createSubject = async (data: Omit<Subject, "id">) =>
-  makePostRequest(`${API_CONTENT_URL}/subjects`, data);
+  makeAuthenticatedPostRequest(`${API_CONTENT_URL}/subjects`, data);
 
 export const updateSubject = async (id: number, data: Partial<Subject>) =>
-  makePutRequest(`${API_CONTENT_URL}/subjects/${id}`, data);
+  makeAuthenticatedPutRequest(`${API_CONTENT_URL}/subjects/${id}`, data);
 
 export const createChapter = async (data: Omit<Chapter, "id">) =>
-  makePostRequest(`${API_CONTENT_URL}/chapters`, data);
+  makeAuthenticatedPostRequest(`${API_CONTENT_URL}/chapters`, data);
 
 export const updateChapter = async (id: number, data: Partial<Chapter>) =>
-  makePutRequest(`${API_CONTENT_URL}/chapters/${id}`, data);
+  makeAuthenticatedPutRequest(`${API_CONTENT_URL}/chapters/${id}`, data);
 
 // Entity metadata for admin UI
 export interface EntityMetadata {

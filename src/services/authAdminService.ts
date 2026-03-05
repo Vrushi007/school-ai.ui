@@ -76,7 +76,7 @@ export interface UpdateOrganizationData {
 export interface CreateUserData {
   email: string;
   username: string;
-  password: string;
+  password?: string;
   full_name: string;
   role_id: number;
   organization_id?: number;
@@ -92,21 +92,17 @@ export interface UpdateUserData {
 
 // Organization API calls
 export const fetchOrganizations = async (): Promise<Organization[]> => {
-  const token = localStorage.getItem("access_token") || "";
   return makeAuthenticatedGetRequest<Organization[]>(
     `${API_AUTH_URL}/organizations`,
-    token,
   );
 };
 
 export const createOrganization = async (
   data: CreateOrganizationData,
 ): Promise<Organization> => {
-  const token = localStorage.getItem("access_token") || "";
   return makeAuthenticatedPostRequest<Organization>(
     `${API_AUTH_URL}/organizations`,
     data,
-    token,
   );
 };
 
@@ -114,38 +110,30 @@ export const updateOrganization = async (
   id: number,
   data: UpdateOrganizationData,
 ): Promise<Organization> => {
-  const token = localStorage.getItem("access_token") || "";
   return makeAuthenticatedPatchRequest<Organization>(
     `${API_AUTH_URL}/organizations/${id}`,
     data,
-    token,
   );
 };
 
 export const deleteOrganization = async (id: number): Promise<void> => {
-  const token = localStorage.getItem("access_token") || "";
   return makeAuthenticatedDeleteRequest(
     `${API_AUTH_URL}/organizations/${id}`,
-    token,
   );
 };
 
 // User API calls
 export const fetchUsers = async (organizationId?: number): Promise<User[]> => {
-  const token = localStorage.getItem("access_token") || "";
   const params = organizationId ? `?organization_id=${organizationId}` : "";
   return makeAuthenticatedGetRequest<User[]>(
     `${API_AUTH_URL}/users${params}`,
-    token,
   );
 };
 
 export const createUser = async (data: CreateUserData): Promise<User> => {
-  const token = localStorage.getItem("access_token") || "";
   return makeAuthenticatedPostRequest<User>(
-    `${API_AUTH_URL}/auth/register`,
+    `${API_AUTH_URL}/users?auto_generate_password=true`,
     data,
-    token,
   );
 };
 
@@ -153,21 +141,17 @@ export const updateUser = async (
   id: number,
   data: UpdateUserData,
 ): Promise<User> => {
-  const token = localStorage.getItem("access_token") || "";
   return makeAuthenticatedPatchRequest<User>(
     `${API_AUTH_URL}/users/${id}`,
     data,
-    token,
   );
 };
 
 export const deleteUser = async (id: number): Promise<void> => {
-  const token = localStorage.getItem("access_token") || "";
-  return makeAuthenticatedDeleteRequest(`${API_AUTH_URL}/users/${id}`, token);
+  return makeAuthenticatedDeleteRequest(`${API_AUTH_URL}/users/${id}`);
 };
 
 // Role API calls
 export const fetchRoles = async (): Promise<Role[]> => {
-  const token = localStorage.getItem("access_token") || "";
-  return makeAuthenticatedGetRequest<Role[]>(`${API_AUTH_URL}/roles`, token);
+  return makeAuthenticatedGetRequest<Role[]>(`${API_AUTH_URL}/roles`);
 };

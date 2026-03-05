@@ -82,7 +82,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Verify token by calling /users/me
       const userData = await makeAuthenticatedGetRequest<User>(
         `${API_AUTH_URL}/users/me`,
-        token,
       );
       setUser(userData);
     } catch (err) {
@@ -173,7 +172,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         await makeAuthenticatedPostRequest(
           `${API_AUTH_URL}/auth/logout`,
           undefined,
-          token,
         );
       }
 
